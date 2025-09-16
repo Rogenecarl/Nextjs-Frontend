@@ -2,10 +2,16 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import Cookies from 'js-cookie';
+import { UserProps } from '@/types/types';
 
+interface User extends UserProps {
+    role: 'admin' | 'provider' | 'user';
+}
 interface AuthState {
     token: string | null;
+    user: User | null;
     setToken: (token: string) => void;
+    setUser: (user: User) => void;
     clearAuth: () => void;
 }
 
@@ -14,8 +20,10 @@ export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
             token: null,
+            user: null,
             setToken: (token) => set({ token }),
-            clearAuth: () => set({ token: null }),
+            setUser: (user) => set({ user }),
+            clearAuth: () => set({ token: null, user: null}),
         }),
         {
             name: 'authToken', // name of the item in storage
@@ -31,6 +39,9 @@ export const useAuthStore = create<AuthState>()(
                 },
                 removeItem: (name) => Cookies.remove(name),
             })),
+
+            partialize: (state) => ({ token: state.token }), // Only persist the token
+
         }
     )
 );

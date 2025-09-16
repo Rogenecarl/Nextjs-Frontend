@@ -1,6 +1,11 @@
 export interface UserRole {
-    id: number;
     role: 'user' | 'provider' | 'admin' | null;
+}
+
+export interface UserProps {
+    id: number;
+    name: string;
+    email: string;
 }
 
 export interface ProviderProps {
@@ -30,4 +35,16 @@ export interface ProviderProps {
         price_min: number;
         price_max: number;
     }[];
+}
+
+export interface CategoryProps {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    icon: string;
+    color: string;
+    is_active: boolean;
+    sort_order: number;
+    count: number | 0;
 }

@@ -1,4 +1,7 @@
 import { ProviderProps } from "@/types/types";
+import { Card, CardContent } from "../ui/card";
+import { Calendar, Heart, MapPin, Star } from "lucide-react";
+import { Button } from "../ui/button";
 
 interface ProviderCardProps {
     provider: ProviderProps;
@@ -6,62 +9,91 @@ interface ProviderCardProps {
 
 export default function ProviderCard({ provider }: ProviderCardProps) {
     return (
-        <article
-            className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col"
-            aria-label={`Healthcare provider: ${provider.healthcare_name}`}
-        >
-            {/* Cover photo */}
-            {provider.cover_photo && (
-                <img
-                    src={provider.cover_photo}
-                    alt={`Cover photo of ${provider.healthcare_name}`}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                    loading="lazy"
+        <Card className="group relative flex h-full cursor-pointer flex-col overflow-hidden p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            {/* Favorite Button */}
+            <button
+                className="absolute top-3 right-3 z-10 rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white"
+            >
+                <Heart
+                    className=" 'h-4 w-4 transition-colors duration-200','fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500',
+                "
                 />
-            )}
-            <div className="p-6 flex flex-col flex-grow">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                    {provider.healthcare_name}
-                </h2>
-                <p className="text-gray-700 mb-4 flex-grow">{provider.description}</p>
-                <div className="mb-4 text-sm text-gray-600 space-y-1">
-                    <p>
-                        <strong>Contact:</strong>{" "}
-                        <a
-                            href={`tel:${provider.phone_number}`}
-                            className="text-blue-600 hover:underline"
-                        >
-                            {provider.phone_number}
-                        </a>{" "}
-                        |{" "}
-                        <a
-                            href={`mailto:${provider.email}`}
-                            className="text-blue-600 hover:underline"
-                        >
-                            {provider.email}
-                        </a>
-                    </p>
-                    <p>
-                        <strong>Address:</strong> {provider.address}, {provider.city},{" "}
-                        {provider.province}
-                    </p>
-                </div>
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Services</h3>
-                    <ul className="list-disc list-inside space-y-1 max-h-40 overflow-y-auto pr-2">
-                        {provider.services.map((service) => (
-                            <li key={service.id} className="text-gray-700 text-sm">
-                                <span className="font-medium">{service.name}</span> -{" "}
-                                {service.description} (
-                                <span className="font-semibold">
-                                    PHP{service.price_min} - PHP{service.price_max}
-                                </span>
-                                )
-                            </li>
+            </button>
+            <CardContent className="flex h-full flex-col p-0">
+                <div className="relative h-48 overflow-hidden bg-gray-100">
+                    {provider.cover_photo && (
+                        <img
+                            src={provider.cover_photo}
+                            alt={`Cover photo of ${provider.healthcare_name}`}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                        />
+                    )}</div>
+
+                {/* Card Content */}
+                <div className="flex flex-grow flex-col p-4">
+                    {/* Service Name and Rating */}
+                    <div className="mb-2 flex items-start justify-between">
+                        <h3 className="line-clamp-1 font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                            {provider.healthcare_name}
+                        </h3>
+                        <div className="ml-2 flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium text-gray-900">1.5</span>
+                        </div>
+                    </div>
+
+                    {/* Category */}
+                    <div className="mb-2 text-sm text-gray-600">
+                        <span className="font-medium">
+                            Category: {provider.category_id}
+                        </span>
+                    </div>
+
+                    {/* Address */}
+                    <div className="mb-2 flex items-center gap-1 text-sm text-gray-600">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="line-clamp-1">
+                            Address: {provider.address}, {provider.city}, {provider.province}
+                        </span>
+                    </div>
+
+                    {/* Services */}
+                    <div className="mb-4 flex flex-wrap gap-1">
+                        {provider.services.slice(0, 3).map((serviceItem, index) => (
+                            <span
+                                key={index}
+                                className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700"
+                            >
+                                <span>{serviceItem.name}</span>
+                            </span>
                         ))}
-                    </ul>
+                        {provider.services.length > 3 && (
+                            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                                +{provider.services.length - 3} more
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-auto flex gap-2">
+                        <Button
+                            className="flex-1 bg-blue-600 text-white transition-colors duration-200 hover:bg-blue-700"
+                            size="sm"
+                        >
+                            <Calendar className="mr-1 h-3 w-3" />
+                            Book Now
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="flex-1 border-gray-300 text-gray-700 transition-colors duration-200 hover:bg-gray-50"
+                            size="sm"
+                        >
+                            View Details
+                        </Button>
+                    </div>
                 </div>
-            </div>
-        </article>
+            </CardContent>
+        </Card >
     );
 }

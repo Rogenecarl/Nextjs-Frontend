@@ -4,18 +4,52 @@ import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRegister } from "@/hooks/useAuthMutation";
+import { RegisterFormSchema, RegisterFormType } from "@/schemas/auth-schema";
 
-export default function RegisterForm() {
-    // Static placeholders
-    const showPassword = false;
+export default function RegisterUserForm() {
+    const [showPassword, setShowPassword] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
+
+    // TanStack Query mutation for handling the API call, loading, and error states
+    const { mutate: registeruser, isPending } = useRegister();
+
+    const {
+        register, handleSubmit, formState: { errors }, setError,
+    } = useForm<RegisterFormType>({
+        resolver: zodResolver(RegisterFormSchema),  // Integrate Zod schema with React Hook Form
+        defaultValues: {
+            name: '',
+            email: '',
+            password: '',
+            password_confirmation: '',
+            role: 'user',
+        },
+    });
+
+    // 2. SUBMISSION HANDLER
+    // This function is only called if validation is successful
+    const processLogin = (data: RegisterFormType) => {
+        setFormError(null); // Clear any previous errors
+        console.log("Form data is valid:", data);
+        registeruser(data, {
+            onError: (error: Error) => {
+                setFormError(error.message);
+            }
+        });
+    };
+
     return (
         <div className="flex flex-col gap-6">
             {/* Removed status message */}
             <Card className="overflow-hidden border-0 bg-white/90 p-0 shadow-2xl shadow-black/10 backdrop-blur-sm">
                 <CardContent className="grid p-0 md:grid-cols-2">
-                    <form className="p-7 md:p-8" onSubmit={e => e.preventDefault()}>
+                    <form className="p-7 md:p-8" onSubmit={handleSubmit(processLogin)}>
                         <div className="flex flex-col gap-4">
                             <div className="flex flex-col items-center text-center">
                                 <h1 className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-2xl font-bold text-transparent">
@@ -23,7 +57,11 @@ export default function RegisterForm() {
                                 </h1>
                                 <p className="text-balance text-muted-foreground">Create a new account</p>
                             </div>
-
+                            {formError && (
+                                <div className="mt-2 w-full rounded-md bg-red-50 p-3">
+                                    <p className="text-sm text-red-600">{formError}</p>
+                                </div>
+                            )}
                             <div className="grid gap-3">
                                 <Label htmlFor="name">Full Name</Label>
                                 <div className="relative">
@@ -36,9 +74,12 @@ export default function RegisterForm() {
                                         tabIndex={1}
                                         autoComplete="name"
                                         className="h-9 pl-10"
+                                        aria-invalid={errors.name ? "true" : "false"}
+                                        {...register('name')}
                                     />
                                 </div>
-                                {/* Removed InputError */}
+                                {/* error message */}
+                                {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
                             </div>
 
                             <div className="grid gap-3">
@@ -53,8 +94,12 @@ export default function RegisterForm() {
                                         tabIndex={1}
                                         autoComplete="email"
                                         className="h-9 pl-10"
+                                        aria-invalid={errors.email ? "true" : "false"}
+                                        {...register('email')}
                                     />
                                 </div>
+                                {/* error message */}
+                                {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
                             </div>
 
                             <div className="grid gap-3">
@@ -69,10 +114,12 @@ export default function RegisterForm() {
                                         tabIndex={2}
                                         autoComplete="current-password"
                                         className="h-9 pr-10 pl-10"
+                                        aria-invalid={errors.password ? "true" : "false"}
+                                        {...register('password')}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => { }}
+                                        onClick={() => setShowPassword(prev => !prev)}
                                         className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
                                         tabIndex={-1}
                                         aria-label="Toggle password visibility"
@@ -80,6 +127,8 @@ export default function RegisterForm() {
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
+                                {/* error message */}
+                                {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
                             </div>
                             <div className="grid gap-3">
                                 <div className="flex items-center">
@@ -94,10 +143,12 @@ export default function RegisterForm() {
                                         tabIndex={2}
                                         autoComplete="current-password"
                                         className="h-9 pr-10 pl-10"
+                                        aria-invalid={errors.password_confirmation ? "true" : "false"}
+                                        {...register('password_confirmation')}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => { }}
+                                        onClick={() => setShowPassword(prev => !prev)}
                                         className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
                                         tabIndex={-1}
                                         aria-label="Toggle password visibility"
@@ -105,14 +156,18 @@ export default function RegisterForm() {
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
+                                {/* error message */}
+                                {errors.password_confirmation && <p className="text-sm text-red-600">{errors.password_confirmation.message}</p>}
                             </div>
 
                             <Button
                                 type="submit"
                                 className="w-full bg-gradient-to-r from-sky-500 to-purple-600 hover:from-sky-600 hover:to-purple-700"
                                 tabIndex={4}
+                                disabled={isPending}
                             >
-                                Register
+                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isPending ? 'Registering...' : 'Create Account'}
                             </Button>
                             <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                                 <span className="relative z-10 bg-card px-2 text-muted-foreground">Or continue with</span>

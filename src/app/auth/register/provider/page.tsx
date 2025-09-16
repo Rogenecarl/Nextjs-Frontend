@@ -1,11 +1,10 @@
-import RegisterUserForm from "@/components/Auth/register-user-form";
+import RegisterProviderForm from "@/components/Auth/register-provider-form";
 
-
-export default function RegisterUserPage() {
+export default function RegisterProviderPage() {
     return (
         <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm md:max-w-3xl">
-                <RegisterUserForm />
+                <RegisterProviderForm />
             </div>
         </div>
     );
