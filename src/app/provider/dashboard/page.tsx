@@ -1,7 +1,12 @@
+import ProviderLayout from "@/components/Provider/layout/ProviderLayout";
+import WelcomeDashboard from "@/components/Provider/welcome-dashboard";
+
 export default function ProviderDashboardPage() {
     return (
-        <div>
-            <h1>Provider Dashboard</h1>
-        </div>
+        <ProviderLayout>
+            <div>
+                <WelcomeDashboard />
+            </div>
+        </ProviderLayout>
     );
 }

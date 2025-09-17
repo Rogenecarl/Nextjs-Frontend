@@ -5,6 +5,7 @@ export interface UserRole {
 export interface UserProps {
     id: number;
     name: string;
+    image: string | null;
     email: string;
 }
 

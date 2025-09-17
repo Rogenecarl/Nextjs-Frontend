@@ -7,6 +7,13 @@ export const HealthCareSkeleton = () => {
     return (
         <UserLayout>
             <div className="relative container mx-auto px-6">
+                <div className="mb-6 hidden text-center md:block">
+                    <h1 className="mb-2 text-3xl font-bold text-gray-900">
+                        Health Care Services in{' '}
+                        <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Digos City</span>
+                    </h1>
+                    <p className="font-medium text-gray-700">Find the best health care services in Digos City for your needs</p>
+                </div>
                 {/* Header Section - hidden on mobile */}
                 <div className="mb-6 hidden text-center md:block">
                     <Skeleton className="h-10 w-3/4 mx-auto mb-2" />
@@ -35,3 +42,4 @@ export const HealthCareSkeleton = () => {
     );
 
 }
+

@@ -6,8 +6,6 @@ import { LoginFormType, RegisterFormType } from '@/schemas/auth-schema';
 import axiosInstance, { getCsrfToken } from '@/lib/axios';
 import { getAuthenticatedUser } from '@/services/userService';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000/api';
-
 export const useLogin = () => {
     const router = useRouter();
     const { setToken, setUser } = useAuthStore.getState(); // Use getState for non-reactive updates in callbacks
@@ -93,17 +91,23 @@ export const useRegister = () => {
     });
 };
 
-
 export const useLogout = () => {
     const router = useRouter();
     const { clearAuth } = useAuthStore.getState(); // Use getState for non-reactive updates in callbacks
     return useMutation({
         mutationFn: async () => {
-            await getCsrfToken();
-            await axiosInstance.post('/logout');
-            clearAuth();
-            router.push('/');
-            toast.success('Logged out successfully');
+            const loadingToast = toast.loading('Logging out...');
+            try {
+                await getCsrfToken();
+                await axiosInstance.post('/logout');
+                clearAuth();
+                router.push('/');
+                toast.dismiss(loadingToast);
+                toast.success('Logged out successfully');
+            } catch (error) {
+                toast.dismiss(loadingToast);
+                throw error;
+            }
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Logout failed');
