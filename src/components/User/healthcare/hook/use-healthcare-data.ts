@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllProviders } from "@/services/providerService";
-import { getAllCategories, getProviderByCategory } from "@/services/categoryService";
+import { getAllCategories } from "@/services/categoryService";
 import { ProviderProps, CategoryProps } from "@/types/types";
 export function useHealthcareData() {
     const {
@@ -10,7 +10,7 @@ export function useHealthcareData() {
         error: categoriesError,
     } = useQuery<CategoryProps[]>({
         queryKey: ['categories'],
-        queryFn: getAllCategories, // No need for a separate async function here
+        queryFn: getAllCategories,
     });
 
     const {
@@ -20,9 +20,9 @@ export function useHealthcareData() {
         error: providersError,
     } = useQuery<ProviderProps[]>({
         queryKey: ["providers"],
-        queryFn: getAllProviders, // Simpler
+        queryFn: getAllProviders, 
     });
-
+    
     // Consolidate the loading and error states
     const isLoading = providersLoading || categoriesLoading;
     const isError = providersIsError || categoriesIsError;

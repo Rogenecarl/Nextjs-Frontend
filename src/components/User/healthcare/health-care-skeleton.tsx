@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import UserLayout from "@/components/User/layout/user-layout"
-import SearchFiltersCategory from "@/components/User/provider-search-filters"
+import SearchBarWithSuggestions from "@/components/User/provider-search-filters";
 
 export const HealthCareSkeleton = () => {
 
@@ -20,7 +20,7 @@ export const HealthCareSkeleton = () => {
                     <Skeleton className="h-6 w-2/4 mx-auto" />
                 </div>
                 <div className="mb-6">
-                    <SearchFiltersCategory />
+                    <SearchBarWithSuggestions onSearch={() => { }} />
                 </div>
                 <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: 8 }).map((_, index) => (

@@ -17,10 +17,10 @@ export default function Navbar() {
     }
 
     const navLinks = [
-        { name: "Find Services", href: "/healthcare", icon: Search },
-        { name: "Booking", href: "/booking", icon: Calendar },
-        { name: "Favorite", href: "/favorites", icon: Heart },
-        { name: "Map", href: "/map", icon: MapPin },
+        { name: "Find Services", href: "/healthcare" },
+        { name: "Booking", href: "/booking" },
+        { name: "Favorite", href: "/favorites" },
+        { name: "Map", href: "/map" },
     ]
 
     return (
@@ -44,14 +44,12 @@ export default function Navbar() {
                     {/* Desktop Navigation Links */}
                     <div className="hidden md:flex items-center space-x-8">
                         {navLinks.map((link) => {
-                            const IconComponent = link.icon
                             return (
                                 <Link
                                     key={link.name}
                                     href={link.href}
                                     className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
                                 >
-                                    <IconComponent className="w-4 h-4" />
                                     <span>{link.name}</span>
                                 </Link>
                             )
@@ -87,7 +85,6 @@ export default function Navbar() {
                     <div className="md:hidden border-t border-border">
                         <div className="px-2 pt-2 pb-3 space-y-1">
                             {navLinks.map((link) => {
-                                const IconComponent = link.icon
                                 return (
                                     <Link
                                         key={link.name}
@@ -95,7 +92,6 @@ export default function Navbar() {
                                         className="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors duration-200"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
-                                        <IconComponent className="w-5 h-5" />
                                         <span className="font-medium">{link.name}</span>
                                     </Link>
                                 )

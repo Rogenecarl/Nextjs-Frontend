@@ -1,4 +1,4 @@
-import { ProviderProps } from "@/types/types";
+import { CategoryProps, ProviderProps } from "@/types/types";
 import { Card, CardContent } from "../ui/card";
 import { Calendar, Heart, MapPin, Star } from "lucide-react";
 import { Button } from "../ui/button";
@@ -7,18 +7,14 @@ interface ProviderCardProps {
     provider: ProviderProps;
 }
 
-export default function ProviderCard({ provider }: ProviderCardProps) {
+export default function ProviderCard({
+    provider,
+
+}: ProviderCardProps) {
+
     return (
         <Card className="group relative flex h-full cursor-pointer flex-col overflow-hidden p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             {/* Favorite Button */}
-            <button
-                className="absolute top-3 right-3 z-10 rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white"
-            >
-                <Heart
-                    className=" 'h-4 w-4 transition-colors duration-200','fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500',
-                "
-                />
-            </button>
             <CardContent className="flex h-full flex-col p-0">
                 <div className="relative h-48 overflow-hidden bg-gray-100">
                     {provider.cover_photo && (

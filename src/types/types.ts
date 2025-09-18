@@ -49,3 +49,12 @@ export interface CategoryProps {
     sort_order: number;
     count: number | 0;
 }
+
+export interface DocumentProps {
+    documents: {
+        file_path: string;
+        status: 'pending' | 'approved' | 'rejected';
+        document_type: string;
+        remarks: string | null;
+    }[];
+}

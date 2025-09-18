@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
             const user: User = response.data.data;
             const userRole = user.role;
 
-            console.log("user details from middleware:", user);
+            // console.log("user details from middleware:", user);
 
             // --- REDIRECT LOGIC ---
             // If the user is authenticated and tries to visit an auth page, redirect them.
@@ -83,7 +83,7 @@ export async function middleware(req: NextRequest) {
 
         } catch (error) {
             // This means the token is invalid or expired.
-            console.error("Token verification failed:", error);
+            // console.error("Token verification failed:", error);
             // Delete the invalid cookie
             const response = NextResponse.redirect(new URL('/auth/login', req.url));
             response.cookies.delete('authToken');
