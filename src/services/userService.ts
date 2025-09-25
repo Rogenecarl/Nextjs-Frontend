@@ -11,3 +11,4 @@ export const getAuthenticatedUser = async () => {
         throw error;
     }
 };
+

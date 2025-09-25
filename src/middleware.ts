@@ -14,7 +14,6 @@ export async function middleware(req: NextRequest) {
 
     const isAuthPage = url.pathname.startsWith('/auth');
     const isAdminPage = url.pathname.startsWith('/admin');
-    const isProviderPage = url.pathname.startsWith('/provider');
     const isHomePage = url.pathname === '/';
 
     // user group routes
@@ -25,8 +24,13 @@ export async function middleware(req: NextRequest) {
         '/map'
     ]
 
+    const providerGroupRoutes = [
+        '/provider/dashboard',
+        '/provider/profile',
+    ];
+
     // Case 1: No token, but trying to access a protected page
-    if (!token && (isAdminPage || isProviderPage)) {
+    if (!token && (isAdminPage || providerGroupRoutes.includes(url.pathname))) {
         return NextResponse.redirect(new URL('/auth/login', req.url));
     }
 
@@ -77,7 +81,7 @@ export async function middleware(req: NextRequest) {
             if (isAdminPage && userRole !== 'admin') {
                 return NextResponse.redirect(new URL('/unauthorized', req.url));
             }
-            if (isProviderPage && userRole !== 'provider') {
+            if (providerGroupRoutes.includes(url.pathname) && userRole !== 'provider') {
                 return NextResponse.redirect(new URL('/unauthorized', req.url));
             }
 

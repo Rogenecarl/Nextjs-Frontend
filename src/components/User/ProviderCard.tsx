@@ -2,6 +2,7 @@ import { CategoryProps, ProviderProps } from "@/types/types";
 import { Card, CardContent } from "../ui/card";
 import { Calendar, Heart, MapPin, Star } from "lucide-react";
 import { Button } from "../ui/button";
+import Link from "next/link";
 
 interface ProviderCardProps {
     provider: ProviderProps;
@@ -13,7 +14,7 @@ export default function ProviderCard({
 }: ProviderCardProps) {
 
     return (
-        <Card className="group relative flex h-full cursor-pointer flex-col overflow-hidden p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <Card className="group relative flex h-full flex-col overflow-hidden p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             {/* Favorite Button */}
             <CardContent className="flex h-full flex-col p-0">
                 <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -73,20 +74,24 @@ export default function ProviderCard({
 
                     {/* Action Buttons */}
                     <div className="mt-auto flex gap-2">
-                        <Button
-                            className="flex-1 bg-blue-600 text-white transition-colors duration-200 hover:bg-blue-700"
-                            size="sm"
-                        >
-                            <Calendar className="mr-1 h-3 w-3" />
-                            Book Now
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="flex-1 border-gray-300 text-gray-700 transition-colors duration-200 hover:bg-gray-50"
-                            size="sm"
-                        >
-                            View Details
-                        </Button>
+                        <Link href={`/appointment/service/${provider.id}`}>
+                            <Button
+                                className="flex-1 bg-blue-600 text-white transition-colors duration-200 hover:bg-blue-700 cursor-pointer "
+                                size="sm"
+                            >
+                                <Calendar className="mr-1 h-3 w-3" />
+                                Book Now
+                            </Button>
+                        </Link>
+                        <Link href={`/providerdetails/${provider.id}`}>
+                            <Button
+                                variant="outline"
+                                className="flex-1 border-gray-300 text-gray-700 transition-colors duration-200 hover:bg-gray-50 cursor-pointer "
+                                size="sm"
+                            >
+                                View Details
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </CardContent>

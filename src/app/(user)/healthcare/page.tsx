@@ -11,8 +11,12 @@ import { useProviders } from "@/components/User/healthcare/hook/use-provider-sea
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategoryProps } from "@/types/types";
+import { useParams } from "next/navigation";
 
 export default function Healthcare() {
+
+    const params = useParams();
+
     // 1. State management for all filters
     const [filters, setFilters] = useState({
         category_id: null as number | null, // Explicitly type for clarity
