@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -128,22 +128,13 @@ export const useCancelBooking = () => {
 
 // Hook for fetching user appointments
 export const useUserAppointments = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation<any, Error, void>({
-        mutationFn: async () => {
+    return useQuery({
+        queryKey: ['user-appointments'],
+        queryFn: async () => {
             const response = await axiosInstance.get(`${API_URL}/user/appointments`);
             return response.data;
         },
-        onSuccess: (data) => {
-            // Update the query cache with fresh data
-            queryClient.setQueryData(['user-appointments'], data);
-        },
-        onError: (error: any) => {
-            console.error('Fetch appointments error:', error);
-            if (error.response?.status === 401) {
-                toast.error('Please log in to view your appointments.');
-            }
-        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        retry: 2,
     });
 };

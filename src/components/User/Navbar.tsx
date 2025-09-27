@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, MapPin, Heart, Calendar, Search } from "lucide-react"
 import AvatarDropdownmenu from "../avatar"
 import { useUser } from "@/hooks/useUser"
+import Image from "next/image"
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -31,8 +32,8 @@ export default function Navbar() {
                     <Link href="/" className="flex items-center">
                         <div className="flex items-center space-x-3">
                             <div className="flex-shrink-0">
-                                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                                    <span className="text-primary-foreground font-bold text-xl">S</span>
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                                    <Image src="/logo.png" alt="Logo" width={40} height={40} />
                                 </div>
                             </div>
                             <div className="hidden sm:block">
