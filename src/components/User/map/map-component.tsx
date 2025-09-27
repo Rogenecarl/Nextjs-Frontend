@@ -33,8 +33,13 @@ export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const userLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   // State management for filters
   const [filters, setFilters] = useState({
@@ -64,13 +69,18 @@ export default function MapComponent() {
       container: mapContainerRef.current,
       style: "mapbox://styles/rogenecarl/cmcoe04d8008l01sq35v2hqdt",
       center: [125.365847, 6.74468], // Default to Philippines center
-      zoom: 12,
+      zoom: 13,
       attributionControl: false,
       logoPosition: "bottom-right",
     });
 
     // Add navigation controls
     mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    // Get user's current location on map load
+    mapRef.current.on("load", () => {
+      getCurrentLocationOnLoad();
+    });
 
     // Add center map button
     const centerButton = document.createElement("button");
@@ -92,7 +102,7 @@ export default function MapComponent() {
         });
         mapRef.current!.fitBounds(bounds, {
           padding: 50,
-          maxZoom: 15,
+          maxZoom: 14,
         });
       }
     });
@@ -239,8 +249,9 @@ export default function MapComponent() {
       }
     });
 
-    // Fit map to show all markers if there are any
-    if (markersRef.current.length > 0 && mapRef.current) {
+    // Only fit map to show all markers if user location is not available
+    // This prevents the map from jumping away from user's location
+    if (markersRef.current.length > 0 && mapRef.current && !userLocation) {
       const bounds = new mapboxgl.LngLatBounds();
       markersRef.current.forEach((marker) => {
         bounds.extend(marker.getLngLat());
@@ -248,10 +259,10 @@ export default function MapComponent() {
 
       mapRef.current.fitBounds(bounds, {
         padding: 50,
-        maxZoom: 15,
+        maxZoom: 14,
       });
     }
-  }, [providers, categories]);
+  }, [providers, categories, userLocation]);
 
   // Handler to update the category filter state
   const handleSelectCategory = (categoryId: number | null) => {
@@ -270,7 +281,88 @@ export default function MapComponent() {
     }));
   };
 
-  // Get current location
+  // Create user location marker
+  const createUserLocationMarker = (lng: number, lat: number) => {
+    // Remove existing user location marker
+    if (userLocationMarkerRef.current) {
+      userLocationMarkerRef.current.remove();
+    }
+
+    // Create user location marker element (blue dot with white border like in image)
+    const userMarkerElement = document.createElement("div");
+    userMarkerElement.style.cssText = `
+      width: 20px;
+      height: 20px;
+      background-color: #007AFF;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    // Add pulsing animation
+    const pulseElement = document.createElement("div");
+    pulseElement.style.cssText = `
+      width: 20px;
+      height: 20px;
+      background-color: rgba(0, 122, 255, 0.3);
+      border-radius: 50%;
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      animation: pulse 2s infinite;
+    `;
+
+    userMarkerElement.appendChild(pulseElement);
+
+    // Create and add user location marker
+    const userMarker = new mapboxgl.Marker(userMarkerElement)
+      .setLngLat([lng, lat])
+      .addTo(mapRef.current!);
+
+    userLocationMarkerRef.current = userMarker;
+    setUserLocation({ lat, lng });
+  };
+
+  // Get current location on initial load
+  const getCurrentLocationOnLoad = () => {
+    if (!navigator.geolocation) {
+      return; // Silently fail on initial load
+    }
+
+    setIsGettingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        if (mapRef.current) {
+          // Smoothly fly to user location with higher zoom
+          mapRef.current.flyTo({
+            center: [longitude, latitude],
+            zoom: 15,
+            duration: 2000,
+            curve: 1.42,
+            easing: (t) => t * (2 - t),
+          });
+
+          // Create user location marker
+          createUserLocationMarker(longitude, latitude);
+        }
+        setIsGettingLocation(false);
+      },
+      () => {
+        // Silently handle errors on initial load but still show loading state
+        setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 300000, // 5 minutes
+      }
+    );
+  };
+
+  // Get current location (for button click)
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by this browser");
@@ -286,9 +378,12 @@ export default function MapComponent() {
         if (mapRef.current) {
           mapRef.current.flyTo({
             center: [longitude, latitude],
-            zoom: 15,
+            zoom: 14,
             duration: 1500,
           });
+
+          // Create or update user location marker
+          createUserLocationMarker(longitude, latitude);
         }
         setIsGettingLocation(false);
       },
@@ -403,8 +498,8 @@ export default function MapComponent() {
       )}
 
       {/* Provider Count - Top Left */}
-      {!isProvidersLoading && providers.length > 0 && (
-        <div className="absolute top-4 left-4 z-10">
+      {/* {!isProvidersLoading && providers.length > 0 && (
+        <div className="absolute top-4 right-4 z-10">
           <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-3 py-2">
             <div className="text-sm font-medium text-gray-900">
               {providers.length} provider{providers.length !== 1 ? "s" : ""}{" "}
@@ -412,14 +507,14 @@ export default function MapComponent() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Map Container */}
       <div className="flex-1 relative">
         <div ref={mapContainerRef} className="w-full h-full" />
       </div>
 
-      {/* Custom CSS for popup styling */}
+      {/* Custom CSS for popup styling and animations */}
       <style jsx global>{`
         .custom-popup .mapboxgl-popup-content {
           padding: 0;
@@ -438,6 +533,21 @@ export default function MapComponent() {
         .custom-popup .mapboxgl-popup-close-button:hover {
           background-color: #f3f4f6;
           color: #374151;
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.5);
+            opacity: 0.5;
+          }
+          100% {
+            transform: scale(2);
+            opacity: 0;
+          }
         }
       `}</style>
     </div>
