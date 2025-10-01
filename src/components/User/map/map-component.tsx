@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 import mapboxgl, { Map, Marker } from "mapbox-gl";
 import { getAllCategories } from "@/services/categoryService";
 import { useProviderLocations } from "./use-provider-locatoin-hook";
@@ -24,6 +25,8 @@ export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const userLocationMarkerRef = useRef<Marker | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
   const [userLocation, setUserLocation] = useState<{
@@ -31,11 +34,22 @@ export default function MapComponent() {
     lng: number;
   } | null>(null);
 
-  // State management for filters (this remains the same)
+  // State management for filters - initialize from URL params
   const [filters, setFilters] = useState({
     category_id: null as number | null,
     search_term: "",
   });
+
+  // Initialize filters from URL params on component mount
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    const searchParam = searchParams.get("search");
+
+    setFilters({
+      category_id: categoryParam ? parseInt(categoryParam) : null,
+      search_term: searchParam || "",
+    });
+  }, [searchParams]);
 
   // Fetch categories
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
@@ -96,8 +110,9 @@ export default function MapComponent() {
                 );
 
                 // Create popup with provider details
-                const popup = new mapboxgl.Popup(MAP_CONFIG.POPUP_CONFIG)
-                  .setHTML(createPopupContent(feature, categoryData));
+                const popup = new mapboxgl.Popup(
+                  MAP_CONFIG.POPUP_CONFIG
+                ).setHTML(createPopupContent(feature, categoryData));
 
                 // Create marker with popup attached
                 const marker = new mapboxgl.Marker({
@@ -173,21 +188,48 @@ export default function MapComponent() {
     });
   }, [filters, providerLocations]); // This effect runs every time the filters state changes
 
+  // Helper function to update URL params
+  const updateUrlParams = (newFilters: {
+    category_id: number | null;
+    search_term: string;
+  }) => {
+    const params = new URLSearchParams();
+
+    if (newFilters.category_id) {
+      params.set("category", newFilters.category_id.toString());
+    }
+
+    if (newFilters.search_term) {
+      params.set("search", newFilters.search_term);
+    }
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `?${queryString}` : "/map";
+
+    router.push(newUrl, { scroll: false });
+  };
+
   // Handler to update the category filter state
   const handleSelectCategory = (categoryId: number | null) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      category_id: prevFilters.category_id === categoryId ? null : categoryId,
-    }));
+    const newFilters = {
+      ...filters,
+      category_id: filters.category_id === categoryId ? null : categoryId,
+    };
+
+    setFilters(newFilters);
+    updateUrlParams(newFilters);
   };
 
   // Handler for the main search
   const handleSearch = (searchTerm: string) => {
-    setFilters((prev) => ({
-      ...prev,
+    const newFilters = {
+      ...filters,
       search_term: searchTerm,
-      category_id: searchTerm ? null : prev.category_id,
-    }));
+      category_id: searchTerm ? null : filters.category_id,
+    };
+
+    setFilters(newFilters);
+    updateUrlParams(newFilters);
   };
 
   // Calculate visible provider count based on current filters
@@ -336,7 +378,10 @@ export default function MapComponent() {
         <div className="flex flex-row gap-3 items-center flex-wrap">
           <div className="w-64">
             {/* This component correctly calls handleSearch */}
-            <SearchFiltersCategory onSearch={handleSearch} />
+            <SearchFiltersCategory
+              onSearch={handleSearch}
+              initialSearchTerm={filters.search_term}
+            />
           </div>
           <div className="flex flex-row gap-2 items-center flex-wrap">
             {isCategoriesLoading ? (

@@ -4,24 +4,37 @@ import UserLayout from "@/components/User/layout/user-layout";
 import CategoryFilter from "@/components/User/category-filter";
 import SearchFiltersCategory from "@/components/User/provider-search-filters";
 import ProviderCard from "@/components/User/ProviderCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAllCategories } from "@/services/categoryService";
 import { useProviders } from "@/components/User/healthcare/hook/use-provider-search-hook";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategoryProps } from "@/types/types";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 export default function Healthcare() {
 
     const params = useParams();
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-    // 1. State management for all filters
+    // 1. State management for all filters - initialize from URL params
     const [filters, setFilters] = useState({
         category_id: null as number | null, // Explicitly type for clarity
         search_term: '',
     });
+
+    // Initialize filters from URL params on component mount
+    useEffect(() => {
+        const categoryParam = searchParams.get('category');
+        const searchParam = searchParams.get('search');
+        
+        setFilters({
+            category_id: categoryParam ? parseInt(categoryParam) : null,
+            search_term: searchParam || '',
+        });
+    }, [searchParams]);
 
     // 2. Fetch the list of categories (this is correct)
     const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
@@ -37,24 +50,47 @@ export default function Healthcare() {
         error
     } = useProviders(filters);
 
-    // 4. Handler to update the category filter state
-    const handleSelectCategory = (categoryId: number | null) => {
-        setFilters(prevFilters => ({
-            ...prevFilters,
-            // Toggle logic: if the same category is clicked, reset to null
-            category_id: prevFilters.category_id === categoryId ? null : categoryId,
-        }));
+    // Helper function to update URL params
+    const updateUrlParams = (newFilters: { category_id: number | null; search_term: string }) => {
+        const params = new URLSearchParams();
+        
+        if (newFilters.category_id) {
+            params.set('category', newFilters.category_id.toString());
+        }
+        
+        if (newFilters.search_term) {
+            params.set('search', newFilters.search_term);
+        }
+        
+        const queryString = params.toString();
+        const newUrl = queryString ? `?${queryString}` : '/healthcare';
+        
+        router.push(newUrl, { scroll: false });
     };
 
+    // 4. Handler to update the category filter state
+    const handleSelectCategory = (categoryId: number | null) => {
+        const newFilters = {
+            ...filters,
+            // Toggle logic: if the same category is clicked, reset to null
+            category_id: filters.category_id === categoryId ? null : categoryId,
+        };
+        
+        setFilters(newFilters);
+        updateUrlParams(newFilters);
+    };
 
     // Handler for the main search (triggered on Enter or when input is cleared)
     const handleSearch = (searchTerm: string) => {
-        setFilters(prev => ({
-            ...prev,
+        const newFilters = {
+            ...filters,
             search_term: searchTerm,
             // Only reset category if there's a new search term
-            category_id: searchTerm ? null : prev.category_id,
-        }));
+            category_id: searchTerm ? null : filters.category_id,
+        };
+        
+        setFilters(newFilters);
+        updateUrlParams(newFilters);
     };
     // Correctly combine loading states
     const isLoading = isCategoriesLoading || isProvidersLoading;
@@ -100,7 +136,10 @@ export default function Healthcare() {
                 </div>
 
                 <div className="mb-6">
-                    <SearchFiltersCategory onSearch={handleSearch} />
+                    <SearchFiltersCategory 
+                        onSearch={handleSearch} 
+                        initialSearchTerm={filters.search_term}
+                    />
                 </div>
 
                 {isProvidersLoading ? (
