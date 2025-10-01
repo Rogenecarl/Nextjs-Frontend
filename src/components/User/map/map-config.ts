@@ -27,12 +27,3 @@ export const MAP_CONFIG = {
 
 // Map style URL
 export const MAP_STYLE = "mapbox://styles/rogenecarl/cmcoe04d8008l01sq35v2hqdt";
-
-// Geolocation error messages
-export const GEOLOCATION_ERRORS = {
-  PERMISSION_DENIED: "Location access denied by user",
-  POSITION_UNAVAILABLE: "Location information is unavailable", 
-  TIMEOUT: "Location request timed out",
-  NOT_SUPPORTED: "Geolocation is not supported by this browser",
-  UNKNOWN: "An unknown error occurred",
-} as const;

@@ -8,14 +8,13 @@ import { getAllCategories } from "@/services/categoryService";
 import { useProviderLocations } from "./use-provider-locatoin-hook";
 import SearchFiltersCategory from "@/components/User/provider-search-filters";
 import CategoryFilter from "@/components/User/category-filter";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategoryProps } from "@/types/types";
-import { Navigation, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createCustomMarker, getCategoryData, markerStyles } from "./marker";
 import { createPopupContent, popupStyles } from "./popup-card";
-import { createUserLocationMarker } from "./user-location-marker";
-import { MAP_CONFIG, MAP_STYLE, GEOLOCATION_ERRORS } from "./map-config";
+
+import { MAP_CONFIG, MAP_STYLE } from "./map-config";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // Set Mapbox access token
@@ -24,15 +23,9 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
-  const userLocationMarkerRef = useRef<Marker | null>(null);
+
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [locationError, setLocationError] = useState<string>("");
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
 
   // State management for filters - initialize from URL params
   const [filters, setFilters] = useState({
@@ -80,6 +73,19 @@ export default function MapComponent() {
       });
 
       mapRef.current = map;
+
+      // Add geolocate control to the map get users current location
+      map.addControl(
+        new mapboxgl.GeolocateControl({
+          positionOptions: {
+            enableHighAccuracy: true,
+          },
+          // When active the map will receive updates to the device's location as it changes.
+          trackUserLocation: true,
+          // Draw an arrow next to the location dot to indicate which direction the device is heading.
+          showUserHeading: true,
+        })
+      );
 
       map.on("load", () => {
         // This is where we load the GeoJSON data
@@ -172,10 +178,38 @@ export default function MapComponent() {
       }
 
       // Apply search term filter
-      if (filters.search_term && properties?.name) {
+      if (filters.search_term) {
         const searchTerm = filters.search_term.toLowerCase();
-        const providerName = properties.name.toLowerCase();
-        if (!providerName.includes(searchTerm)) {
+        let matchesSearch = false;
+
+        // Check provider name
+        if (
+          properties?.name &&
+          properties.name.toLowerCase().includes(searchTerm)
+        ) {
+          matchesSearch = true;
+        }
+
+        // Check provider address
+        if (
+          properties?.address &&
+          properties.address.toLowerCase().includes(searchTerm)
+        ) {
+          matchesSearch = true;
+        }
+
+        // Check services
+        if (properties?.services && Array.isArray(properties.services)) {
+          const serviceMatch = properties.services.some(
+            (service: any) =>
+              service.name && service.name.toLowerCase().includes(searchTerm)
+          );
+          if (serviceMatch) {
+            matchesSearch = true;
+          }
+        }
+
+        if (!matchesSearch) {
           shouldShow = false;
         }
       }
@@ -248,10 +282,38 @@ export default function MapComponent() {
         shouldShow = false;
       }
 
-      if (filters.search_term && properties?.name) {
+      if (filters.search_term) {
         const searchTerm = filters.search_term.toLowerCase();
-        const providerName = properties.name.toLowerCase();
-        if (!providerName.includes(searchTerm)) {
+        let matchesSearch = false;
+
+        // Check provider name
+        if (
+          properties?.name &&
+          properties.name.toLowerCase().includes(searchTerm)
+        ) {
+          matchesSearch = true;
+        }
+
+        // Check provider address
+        if (
+          properties?.address &&
+          properties.address.toLowerCase().includes(searchTerm)
+        ) {
+          matchesSearch = true;
+        }
+
+        // Check services
+        if (properties?.services && Array.isArray(properties.services)) {
+          const serviceMatch = properties.services.some(
+            (service: any) =>
+              service.name && service.name.toLowerCase().includes(searchTerm)
+          );
+          if (serviceMatch) {
+            matchesSearch = true;
+          }
+        }
+
+        if (!matchesSearch) {
           shouldShow = false;
         }
       }
@@ -262,114 +324,80 @@ export default function MapComponent() {
     return visibleCount;
   };
 
-  // Create and add user location marker
-  const addUserLocationMarker = (lng: number, lat: number) => {
-    // Remove existing user location marker
-    if (userLocationMarkerRef.current) {
-      userLocationMarkerRef.current.remove();
-    }
+  // Show skeleton when providers are loading
+  if (isProvidersLoading) {
+    return (
+      <div className="h-full flex flex-col relative bg-gray-50">
+        {/* Search Bar and Category Filters Skeleton - Top Left */}
+        <div className="absolute top-4 left-4 z-10">
+          <div className="flex flex-row gap-3 items-center flex-wrap">
+            <div className="w-64">
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="flex flex-row gap-2 items-center flex-wrap">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-24 rounded-md" />
+              ))}
+            </div>
+          </div>
+        </div>
 
-    // Create user location marker element
-    const userMarkerElement = createUserLocationMarker();
+        {/* Map Skeleton */}
+        <div className="flex-1 relative">
+          <div className="w-full h-full bg-gray-100 relative overflow-hidden">
+            {/* Map grid pattern */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="grid grid-cols-8 grid-rows-6 h-full w-full">
+                {Array.from({ length: 48 }).map((_, i) => (
+                  <div key={i} className="border border-gray-300" />
+                ))}
+              </div>
+            </div>
 
-    // Create and add user location marker
-    const userMarker = new mapboxgl.Marker({
-      element: userMarkerElement,
-      anchor: "center",
-      draggable: false,
-      rotationAlignment: "map",
-      pitchAlignment: "map",
-    })
-      .setLngLat([lng, lat])
-      .addTo(mapRef.current!);
+            {/* Skeleton markers scattered across the map */}
+            <div className="absolute top-1/4 left-1/3">
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </div>
+            <div className="absolute top-1/2 left-1/4">
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </div>
+            <div className="absolute top-1/3 right-1/3">
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </div>
+            <div className="absolute bottom-1/3 left-1/2">
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </div>
+            <div className="absolute top-2/3 right-1/4">
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </div>
+            <div className="absolute bottom-1/4 right-1/2">
+              <Skeleton className="h-6 w-6 rounded-full" />
+            </div>
 
-    userLocationMarkerRef.current = userMarker;
-    setUserLocation({ lat, lng });
-  };
+            {/* Loading indicator */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <span className="text-sm font-medium text-gray-700">
+                    Loading map and providers...
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  // Get current location on initial load
-  const getCurrentLocationOnLoad = () => {
-    if (!navigator.geolocation) {
-      return; // Silently fail on initial load
-    }
-
-    setIsGettingLocation(true);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        if (mapRef.current) {
-          // Smoothly fly to user location with higher zoom
-          mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: MAP_CONFIG.USER_LOCATION_ZOOM,
-            duration: MAP_CONFIG.LOCATION_FLY_DURATION,
-            curve: MAP_CONFIG.LOCATION_FLY_CURVE,
-            easing: (t: number) => t * (2 - t),
-          });
-
-          // Create user location marker
-          addUserLocationMarker(longitude, latitude);
-        }
-        setIsGettingLocation(false);
-      },
-      () => {
-        // Silently handle errors on initial load but still show loading state
-        setIsGettingLocation(false);
-      },
-      MAP_CONFIG.GEOLOCATION_OPTIONS
+        {/* Controls skeleton - Bottom Right */}
+        <div className="absolute bottom-4 right-4 z-10">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-10 w-10 rounded-md" />
+            <Skeleton className="h-10 w-10 rounded-md" />
+          </div>
+        </div>
+      </div>
     );
-  };
-
-  // Get current location (for button click)
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError(GEOLOCATION_ERRORS.NOT_SUPPORTED);
-      return;
-    }
-
-    setIsGettingLocation(true);
-    setLocationError("");
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        if (mapRef.current) {
-          mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: MAP_CONFIG.USER_LOCATION_ZOOM - 1,
-            duration: 1500,
-          });
-
-          // Create or update user location marker
-          addUserLocationMarker(longitude, latitude);
-        }
-        setIsGettingLocation(false);
-      },
-      (error) => {
-        setIsGettingLocation(false);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationError(GEOLOCATION_ERRORS.PERMISSION_DENIED);
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setLocationError(GEOLOCATION_ERRORS.POSITION_UNAVAILABLE);
-            break;
-          case error.TIMEOUT:
-            setLocationError(GEOLOCATION_ERRORS.TIMEOUT);
-            break;
-          default:
-            setLocationError(GEOLOCATION_ERRORS.UNKNOWN);
-            break;
-        }
-      },
-      {
-        ...MAP_CONFIG.GEOLOCATION_OPTIONS,
-        timeout: 10000,
-        maximumAge: 60000,
-      }
-    );
-  };
+  }
 
   return (
     <div className="h-full flex flex-col relative">
@@ -390,13 +418,13 @@ export default function MapComponent() {
               ))
             ) : (
               <>
-                <Button
+                {/* <Button
                   onClick={() => handleSelectCategory(null)}
                   variant={filters.category_id === null ? "default" : "outline"}
                   size="sm"
                 >
                   All Categories
-                </Button>
+                </Button> */}
                 {categories.slice(0, 5).map((category: CategoryProps) => (
                   <CategoryFilter
                     key={category.id}
@@ -410,28 +438,11 @@ export default function MapComponent() {
           </div>
         </div>
       </div>
-      {/* Current Location Button - Bottom Left */}
-      <div className="absolute bottom-4 left-4 z-10">
-        <Button
-          type="button"
-          onClick={getCurrentLocation}
-          disabled={isGettingLocation}
-          className="bg-white/95 backdrop-blur-sm shadow-lg border border-gray-200 text-gray-700 hover:bg-white hover:text-gray-900"
-          size="sm"
-        >
-          {isGettingLocation ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Navigation className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
 
       {/* Status Indicator - Bottom Center */}
       {(isProvidersLoading ||
         isError ||
-        (!isProvidersLoading && providerLocations?.features?.length === 0) ||
-        locationError) && (
+        (!isProvidersLoading && providerLocations?.features?.length === 0)) && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
           <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-4 py-2">
             {isProvidersLoading && (
@@ -449,9 +460,6 @@ export default function MapComponent() {
               providerLocations?.features?.length === 0 && (
                 <div className="text-sm text-gray-600">No providers found</div>
               )}
-            {locationError && (
-              <div className="text-sm text-red-600">{locationError}</div>
-            )}
           </div>
         </div>
       )}

@@ -13,7 +13,7 @@ import {
 import { useDebounce } from "@/hooks/use-debounce-hook";
 import { getSearchSuggestions } from "@/services/providerService";
 import { ProviderProps } from "@/types/types";
-import { Building, Stethoscope, MapPin } from "lucide-react";
+import { Building, Stethoscope, MapPin, Loader2 } from "lucide-react";
 
 interface SearchBarProps {
   onSearch: (searchTerm: string) => void;
@@ -83,8 +83,9 @@ export default function SearchBarWithSuggestions({
           <CommandList className="absolute top-full mt-2 w-full bg-white rounded-md shadow-lg z-50 border">
             {isLoading && (
               <CommandEmpty>
-                <div className="p-4 text-sm text-muted-foreground">
-                  Loading suggestions...
+                <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading...
                 </div>
               </CommandEmpty>
             )}

@@ -1,5 +1,7 @@
 import { CategoryProps } from "@/types/types";
 
+
+
 export interface PopupCardProps {
   feature: any;
   categoryData: {
@@ -147,26 +149,23 @@ export const createPopupContent = (
           <button 
             class="primary-btn" 
             style="background-color: ${color};"
-            onclick="(() => {
-              const address = encodeURIComponent('${provider?.address || ""}, ${
-    provider?.city || ""
-  }, ${provider?.province || ""}');
-              const url = \`https://www.google.com/maps/dir/?api=1&destination=\${address}\`;
-              window.open(url, '_blank');
-            })()"
-          >
-            Get Directions
-          </button>
-          <button 
-            class="secondary-btn"
             onclick="window.location.href='/providerdetails/${provider?.id}'"
           >
             View Details
+          </button>
+          <button 
+            class="secondary-btn"
+            onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${
+              feature.geometry.coordinates[1]
+            },${feature.geometry.coordinates[0]}', '_blank')"
+          >
+            Get Directions
           </button>
         </div>
       </div>
     </div>`;
 };
+
 
 // Popup styles that need to be injected into the document
 export const popupStyles = `
