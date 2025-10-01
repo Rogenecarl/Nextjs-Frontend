@@ -2,6 +2,21 @@ import axiosInstance from "@/lib/axios"; // Use your configured instance
 
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/providers`;
 
+// ========================================================================
+// NEW function to fetch GeoJSON data for the map
+// ========================================================================
+/**
+ * Fetches all verified provider locations as a GeoJSON FeatureCollection.
+ * This is optimized for use with Mapbox GL JS.
+ */
+export const getProviderLocations = async () => {
+  // This calls the GET /api/providers/locations endpoint you created
+  const response = await axiosInstance.get(`${API_URL}/locations`);
+  // The controller returns the GeoJSON object directly, so we just return response.data
+  return response.data;
+};
+// ========================================================================
+
 // OLD function (keep it if you use it elsewhere)
 export const getAllProviders = async () => {
   const response = await axiosInstance.get(API_URL);
@@ -93,9 +108,8 @@ export const getUserAppointments = async (filters?: {
   if (filters?.to_date) params.append("to_date", filters.to_date);
 
   const queryString = params.toString();
-  const url = `${API_URL}/user/appointments${
-    queryString ? `?${queryString}` : ""
-  }`;
+  const url = `${API_URL}/user/appointments${queryString ? `?${queryString}` : ""
+    }`;
 
   const response = await axiosInstance.get(url);
   return response.data;

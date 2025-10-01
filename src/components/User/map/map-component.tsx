@@ -2,16 +2,68 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { Map, Marker } from "mapbox-gl";
 import { getAllCategories } from "@/services/categoryService";
-import { useProviders } from "@/components/User/healthcare/hook/use-provider-search-hook";
+import { useProviderLocations } from "./use-provider-locatoin-hook";
 import SearchFiltersCategory from "@/components/User/provider-search-filters";
 import CategoryFilter from "@/components/User/category-filter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CategoryProps, ProviderProps } from "@/types/types";
+import { CategoryProps } from "@/types/types";
 import { MapPin, Navigation, Loader2 } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";
+
+// Add custom styles for markers
+const markerStyles = `
+  @keyframes markerPulse {
+    0% {
+      transform: rotate(-45deg) scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: rotate(-45deg) scale(1.2);
+      opacity: 0.3;
+    }
+    100% {
+      transform: rotate(-45deg) scale(1);
+      opacity: 0.6;
+    }
+  }
+  
+  .custom-marker .marker-body {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .custom-marker:hover .marker-body {
+    transform: rotate(-45deg) scale(1.1) !important;
+  }
+  
+  .custom-marker .marker-pulse {
+    animation: markerPulse 2s infinite;
+  }
+  
+  .mapboxgl-popup-content {
+    border-radius: 12px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding: 0 !important;
+  }
+  
+  .mapboxgl-popup-tip {
+    border-top-color: white !important;
+  }
+  
+  .mapboxgl-popup-close-button {
+    font-size: 18px !important;
+    padding: 8px !important;
+    color: #6b7280 !important;
+  }
+  
+  .mapboxgl-popup-close-button:hover {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+  }
+`;
 
 // Set Mapbox access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
@@ -29,11 +81,83 @@ const getCategoryColor = (categoryId: number | undefined) => {
   return colors[categoryId as keyof typeof colors] || colors.default;
 };
 
+// Create custom marker element with category-specific styling
+const createCustomMarker = (categoryId: number | undefined) => {
+  const color = getCategoryColor(categoryId);
+  const markerElement = document.createElement("div");
+  markerElement.className = "custom-marker";
+  
+  // Create the marker with modern design
+  markerElement.innerHTML = `
+    <div class="marker-container" style="
+      position: relative;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      transform: translate(-50%, -100%);
+    ">
+      <!-- Main marker body -->
+      <div class="marker-body" style="
+        width: 32px;
+        height: 32px;
+        background: ${color};
+        border: 3px solid white;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        transition: all 0.2s ease;
+      ">
+        <!-- Inner dot -->
+        <div class="marker-dot" style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 8px;
+          height: 8px;
+          background: white;
+          border-radius: 50%;
+          transform: translate(-50%, -50%) rotate(45deg);
+        "></div>
+      </div>
+      
+      <!-- Pulse animation ring -->
+      <div class="marker-pulse" style="
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        width: 36px;
+        height: 36px;
+        border: 2px solid ${color};
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        opacity: 0.6;
+        animation: markerPulse 2s infinite;
+      "></div>
+    </div>
+  `;
+  
+  // Add hover effects
+  const markerBody = markerElement.querySelector('.marker-body') as HTMLElement;
+  if (markerBody) {
+    markerElement.addEventListener('mouseenter', () => {
+      markerBody.style.transform = 'rotate(-45deg) scale(1.1)';
+      markerBody.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15)';
+    });
+    
+    markerElement.addEventListener('mouseleave', () => {
+      markerBody.style.transform = 'rotate(-45deg) scale(1)';
+      markerBody.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)';
+    });
+  }
+  
+  return markerElement;
+};
+
 export default function MapComponent() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const userLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapRef = useRef<Map | null>(null);
+  const userLocationMarkerRef = useRef<Marker | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
   const [userLocation, setUserLocation] = useState<{
@@ -41,7 +165,7 @@ export default function MapComponent() {
     lng: number;
   } | null>(null);
 
-  // State management for filters
+  // State management for filters (this remains the same)
   const [filters, setFilters] = useState({
     category_id: null as number | null,
     search_term: "",
@@ -53,216 +177,168 @@ export default function MapComponent() {
     queryFn: getAllCategories,
   });
 
-  // Fetch providers based on filters
+  // NEW: Fetch provider locations using our new hook
   const {
-    providers,
+    data: providerLocations, // This is our GeoJSON data
     isLoading: isProvidersLoading,
     isError,
-    error,
-  } = useProviders(filters);
+  } = useProviderLocations();
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
-
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: "mapbox://styles/rogenecarl/cmcoe04d8008l01sq35v2hqdt",
-      center: [125.365847, 6.74468], // Default to Philippines center
-      zoom: 13,
-      attributionControl: false,
-      logoPosition: "bottom-right",
-    });
-
-    // Add navigation controls
-    mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-
-    // Get user's current location on map load
-    mapRef.current.on("load", () => {
-      getCurrentLocationOnLoad();
-    });
-
-    // Add center map button
-    const centerButton = document.createElement("button");
-    centerButton.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
-    centerButton.innerHTML = `
-      <button class="mapboxgl-ctrl-icon" type="button" title="Center Map" style="background-image: none; display: flex; align-items: center; justify-content: center;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
-        </svg>
-      </button>
-    `;
-
-    centerButton.addEventListener("click", () => {
-      if (mapRef.current && markersRef.current.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        markersRef.current.forEach((marker) => {
-          bounds.extend(marker.getLngLat());
-        });
-        mapRef.current!.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 14,
-        });
-      }
-    });
-
-    mapRef.current.addControl(
-      {
-        onAdd: () => centerButton,
-        onRemove: () => centerButton.remove(),
-      } as mapboxgl.IControl,
-      "bottom-right"
-    );
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
-
-  // Update markers when providers change
-  useEffect(() => {
-    if (!mapRef.current || !providers) return;
-
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    // Add new markers for each provider
-    providers.forEach((provider: ProviderProps) => {
-      if (provider.longitude && provider.latitude) {
-        // Find the category for this provider to get the icon and color
-        const providerCategory = categories.find(
-          (cat: CategoryProps) => cat.id === provider.category_id
-        );
-
-        const categoryId = providerCategory?.id;
-        const markerColor = getCategoryColor(categoryId);
-
-        // Create marker element with category icon
-        const markerElement = document.createElement("div");
-        markerElement.className = "custom-marker";
-        markerElement.style.cssText = `
-          width: 36px;
-          height: 36px;
-          background-color: ${markerColor};
-          border: 2px solid white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          transition: all 0.2s ease;
-        `;
-
-        // Add category icon or default icon
-        markerElement.innerHTML = providerCategory?.icon || "🏥";
-
-        // Add hover effect
-        markerElement.addEventListener("mouseenter", () => {
-          markerElement.style.transform = "scale(1.15)";
-          markerElement.style.zIndex = "1000";
-        });
-        markerElement.addEventListener("mouseleave", () => {
-          markerElement.style.transform = "scale(1)";
-          markerElement.style.zIndex = "auto";
-        });
-
-        // Create popup content
-        const popupContent = `
-          <div class="p-4 min-w-[280px] max-w-[320px]">
-            <div class="flex items-start gap-3 mb-3">
-              <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background-color: ${markerColor}20; color: ${markerColor};">
-                ${providerCategory?.icon || "🏥"}
-              </div>
-              <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-lg text-gray-900 mb-1 leading-tight">${
-                  provider.healthcare_name
-                }</h3>
-                <p class="text-sm text-gray-600 flex items-center gap-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                  ${provider.address}
-                </p>
-              </div>
-            </div>
-            ${
-              provider.services && provider.services.length > 0
-                ? `
-              <div class="mb-4">
-                <p class="text-xs font-medium text-gray-700 mb-2">Available Services:</p>
-                <div class="flex flex-wrap gap-1">
-                  ${provider.services
-                    .slice(0, 3)
-                    .map(
-                      (service) =>
-                        `<span class="text-xs px-2 py-1 rounded-full" style="background-color: ${markerColor}15; color: ${markerColor};">${service.name}</span>`
-                    )
-                    .join("")}
-                  ${
-                    provider.services.length > 3
-                      ? `<span class="text-xs text-gray-500 px-2 py-1">+${
-                          provider.services.length - 3
-                        } more</span>`
-                      : ""
-                  }
-                </div>
-              </div>
-            `
-                : ""
-            }
-            <button 
-              onclick="window.location.href='/providers/${provider.id}'" 
-              class="w-full text-white text-sm py-2.5 px-4 rounded-lg font-medium transition-colors"
-              style="background-color: ${markerColor};"
-              onmouseover="this.style.opacity='0.9'"
-              onmouseout="this.style.opacity='1'"
-            >
-              View Details & Book
-            </button>
-          </div>
-        `;
-
-        const popup = new mapboxgl.Popup({
-          offset: 25,
-          closeButton: true,
-          closeOnClick: false,
-          className: "custom-popup",
-        }).setHTML(popupContent);
-
-        const marker = new mapboxgl.Marker(markerElement)
-          .setLngLat([
-            parseFloat(provider.longitude),
-            parseFloat(provider.latitude),
-          ])
-          .setPopup(popup)
-          .addTo(mapRef.current!);
-
-        markersRef.current.push(marker);
-      }
-    });
-
-    // Only fit map to show all markers if user location is not available
-    // This prevents the map from jumping away from user's location
-    if (markersRef.current.length > 0 && mapRef.current && !userLocation) {
-      const bounds = new mapboxgl.LngLatBounds();
-      markersRef.current.forEach((marker) => {
-        bounds.extend(marker.getLngLat());
+    if (mapContainerRef.current && !mapRef.current) {
+      // Inject custom marker styles
+      const styleElement = document.createElement('style');
+      styleElement.textContent = markerStyles;
+      document.head.appendChild(styleElement);
+      
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: "mapbox://styles/rogenecarl/cmcoe04d8008l01sq35v2hqdt",
+        center: [125.365847, 6.74468],
+        zoom: 13,
       });
 
-      mapRef.current.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 14,
+      mapRef.current = map;
+
+      map.on("load", () => {
+        // This is where we load the GeoJSON data
+        if (providerLocations) {
+          // Create custom markers for each provider
+          const markers: { marker: Marker; feature: any }[] = [];
+          
+          if (providerLocations.features) {
+            providerLocations.features.forEach((feature: any) => {
+              // Only create markers for individual points, not clusters
+              if (!feature.properties?.point_count && feature.geometry.coordinates) {
+                const coordinates = feature.geometry.coordinates as [number, number];
+                const categoryId = feature.properties?.categoryId;
+                
+                // Create custom marker element
+                const markerElement = createCustomMarker(categoryId);
+                
+                // Create marker with popup
+                const marker = new mapboxgl.Marker({
+                  element: markerElement,
+                  anchor: 'bottom'
+                })
+                .setLngLat(coordinates)
+                .addTo(map);
+                
+                // Add click handler for popup
+                markerElement.addEventListener('click', () => {
+                  const category = categories.find(
+                    (c: CategoryProps) => c.id === categoryId
+                  );
+                  const markerColor = getCategoryColor(categoryId);
+                  
+                  const popupContent = `
+                    <div class="p-4 min-w-[280px] max-w-[320px]">
+                        <h3 class="font-semibold text-lg text-gray-900 mb-1">${feature.properties?.name || 'Healthcare Provider'}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${feature.properties?.address || 'Address not available'}</p>
+                        ${category ? `<span class="inline-block px-2 py-1 text-xs font-medium rounded-full mb-3" style="background-color: ${markerColor}20; color: ${markerColor};">${category.name}</span>` : ''}
+                        <button 
+                            onclick="window.location.href='/providers/${feature.properties?.id}'" 
+                            class="mt-4 w-full text-white text-sm py-2.5 px-4 rounded-lg font-medium transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                            style="background-color: ${markerColor};"
+                        >
+                            View Details & Book
+                        </button>
+                    </div>`;
+                  
+                  new mapboxgl.Popup({
+                    offset: 25,
+                    closeButton: true,
+                    closeOnClick: true,
+                    className: 'custom-popup'
+                  })
+                    .setLngLat(coordinates)
+                    .setHTML(popupContent)
+                    .addTo(map);
+                });
+                
+                markers.push({ marker, feature });
+              }
+            });
+          }
+          
+          // Store markers and features for filtering
+          (map as any)._customMarkers = markers;
+
+          // --- Cluster Interactivity ---
+
+          map.on("click", "clusters", (e) => {
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ["clusters"],
+            });
+            const clusterId = features[0].properties!.cluster_id;
+            const source = map.getSource(
+              "providers-source"
+            ) as mapboxgl.GeoJSONSource;
+            source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+              if (err) return;
+              map.easeTo({
+                center: (features[0].geometry as any).coordinates,
+                zoom: zoom!,
+              });
+            });
+          });
+
+
+          map.on("mouseenter", "clusters", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "clusters", () => {
+            map.getCanvas().style.cursor = "";
+          });
+        }
       });
     }
-  }, [providers, categories, userLocation]);
+
+    return () => {
+      // Clean up custom markers
+      if (mapRef.current && (mapRef.current as any)._customMarkers) {
+        const markersData = (mapRef.current as any)._customMarkers as { marker: Marker; feature: any }[];
+        markersData.forEach(({ marker }) => marker.remove());
+      }
+      
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, [providerLocations, categories]); // Rerun setup if provider locations data becomes available
+
+  // Filter custom markers based on search and category filters
+  useEffect(() => {
+    if (!mapRef.current || !(mapRef.current as any)._customMarkers) return;
+
+    const markersData = (mapRef.current as any)._customMarkers as { marker: Marker; feature: any }[];
+    
+    markersData.forEach(({ marker, feature }) => {
+      const properties = feature.properties;
+      
+      let shouldShow = true;
+      
+      // Apply category filter
+      if (filters.category_id && properties?.categoryId !== filters.category_id) {
+        shouldShow = false;
+      }
+      
+      // Apply search term filter
+      if (filters.search_term && properties?.name) {
+        const searchTerm = filters.search_term.toLowerCase();
+        const providerName = properties.name.toLowerCase();
+        if (!providerName.includes(searchTerm)) {
+          shouldShow = false;
+        }
+      }
+      
+      // Show/hide marker
+      const markerElement = marker.getElement();
+      if (markerElement) {
+        markerElement.style.display = shouldShow ? 'block' : 'none';
+      }
+    });
+  }, [filters, providerLocations]); // This effect runs every time the filters state changes
 
   // Handler to update the category filter state
   const handleSelectCategory = (categoryId: number | null) => {
@@ -281,6 +357,33 @@ export default function MapComponent() {
     }));
   };
 
+  // Calculate visible provider count based on current filters
+  const getVisibleProviderCount = () => {
+    if (!providerLocations?.features) return 0;
+    
+    let visibleCount = 0;
+    providerLocations.features.forEach((feature: any) => {
+      const properties = feature.properties;
+      let shouldShow = true;
+      
+      if (filters.category_id && properties?.categoryId !== filters.category_id) {
+        shouldShow = false;
+      }
+      
+      if (filters.search_term && properties?.name) {
+        const searchTerm = filters.search_term.toLowerCase();
+        const providerName = properties.name.toLowerCase();
+        if (!providerName.includes(searchTerm)) {
+          shouldShow = false;
+        }
+      }
+      
+      if (shouldShow) visibleCount++;
+    });
+    
+    return visibleCount;
+  };
+
   // Create user location marker
   const createUserLocationMarker = (lng: number, lat: number) => {
     // Remove existing user location marker
@@ -291,32 +394,38 @@ export default function MapComponent() {
     // Create user location marker element (blue dot with white border like in image)
     const userMarkerElement = document.createElement("div");
     userMarkerElement.style.cssText = `
-      width: 20px;
-      height: 20px;
-      background-color: #007AFF;
-      border: 3px solid white;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      position: relative;
-    `;
+            width: 20px;
+            height: 20px;
+            background-color: #007AFF;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+            `;
 
     // Add pulsing animation
     const pulseElement = document.createElement("div");
     pulseElement.style.cssText = `
-      width: 20px;
-      height: 20px;
-      background-color: rgba(0, 122, 255, 0.3);
-      border-radius: 50%;
-      position: absolute;
-      top: -3px;
-      left: -3px;
-      animation: pulse 2s infinite;
-    `;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0, 122, 255, 0.3);
+            border-radius: 50%;
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            animation: pulse 2s infinite;
+            `;
 
     userMarkerElement.appendChild(pulseElement);
 
     // Create and add user location marker
-    const userMarker = new mapboxgl.Marker(userMarkerElement)
+    const userMarker = new mapboxgl.Marker({
+      element: userMarkerElement,
+      anchor: "center", // Keep center anchor for the circular user location marker
+      draggable: false, // Prevent dragging
+      rotationAlignment: "map", // Keep marker aligned with map
+      pitchAlignment: "map", // Keep marker aligned with map pitch
+    })
       .setLngLat([lng, lat])
       .addTo(mapRef.current!);
 
@@ -342,7 +451,7 @@ export default function MapComponent() {
             zoom: 15,
             duration: 2000,
             curve: 1.42,
-            easing: (t) => t * (2 - t),
+            easing: (t: number) => t * (2 - t),
           });
 
           // Create user location marker
@@ -417,12 +526,10 @@ export default function MapComponent() {
       {/* Search Bar and Category Filters - Top Left */}
       <div className="absolute top-4 left-4 z-10">
         <div className="flex flex-row gap-3 items-center flex-wrap">
-          {/* Search Bar */}
           <div className="w-64">
+            {/* This component correctly calls handleSearch */}
             <SearchFiltersCategory onSearch={handleSearch} />
           </div>
-
-          {/* Category Filter Pills */}
           <div className="flex flex-row gap-2 items-center flex-wrap">
             {isCategoriesLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
@@ -434,7 +541,6 @@ export default function MapComponent() {
                   onClick={() => handleSelectCategory(null)}
                   variant={filters.category_id === null ? "default" : "outline"}
                   size="sm"
-                  className="text-xs"
                 >
                   All Categories
                 </Button>
@@ -451,7 +557,6 @@ export default function MapComponent() {
           </div>
         </div>
       </div>
-
       {/* Current Location Button - Bottom Left */}
       <div className="absolute bottom-4 left-4 z-10">
         <Button
@@ -472,7 +577,7 @@ export default function MapComponent() {
       {/* Status Indicator - Bottom Center */}
       {(isProvidersLoading ||
         isError ||
-        (!isProvidersLoading && providers.length === 0) ||
+        (!isProvidersLoading && providerLocations?.features?.length === 0) ||
         locationError) && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
           <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-4 py-2">
@@ -487,9 +592,10 @@ export default function MapComponent() {
                 Error loading providers
               </div>
             )}
-            {!isProvidersLoading && providers.length === 0 && (
-              <div className="text-sm text-gray-600">No providers found</div>
-            )}
+            {!isProvidersLoading &&
+              providerLocations?.features?.length === 0 && (
+                <div className="text-sm text-gray-600">No providers found</div>
+              )}
             {locationError && (
               <div className="text-sm text-red-600">{locationError}</div>
             )}
@@ -497,59 +603,26 @@ export default function MapComponent() {
         </div>
       )}
 
-      {/* Provider Count - Top Left */}
-      {/* {!isProvidersLoading && providers.length > 0 && (
-        <div className="absolute top-4 right-4 z-10">
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-3 py-2">
-            <div className="text-sm font-medium text-gray-900">
-              {providers.length} provider{providers.length !== 1 ? "s" : ""}{" "}
-              found
+      {/* Provider Count - Top Right */}
+      {!isProvidersLoading &&
+        providerLocations?.features &&
+        providerLocations.features.length > 0 && (
+          <div className="absolute top-4 right-4 z-10">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-3 py-2">
+              <div className="text-sm font-medium text-gray-900">
+                {(() => {
+                  const count = getVisibleProviderCount();
+                  return `${count} provider${count !== 1 ? "s" : ""} found`;
+                })()}
+              </div>
             </div>
           </div>
-        </div>
-      )} */}
+        )}
 
       {/* Map Container */}
       <div className="flex-1 relative">
         <div ref={mapContainerRef} className="w-full h-full" />
       </div>
-
-      {/* Custom CSS for popup styling and animations */}
-      <style jsx global>{`
-        .custom-popup .mapboxgl-popup-content {
-          padding: 0;
-          border-radius: 12px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-          border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .custom-popup .mapboxgl-popup-tip {
-          border-top-color: white;
-        }
-        .custom-popup .mapboxgl-popup-close-button {
-          font-size: 18px;
-          padding: 8px;
-          color: #6b7280;
-        }
-        .custom-popup .mapboxgl-popup-close-button:hover {
-          background-color: #f3f4f6;
-          color: #374151;
-        }
-
-        @keyframes pulse {
-          0% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.5);
-            opacity: 0.5;
-          }
-          100% {
-            transform: scale(2);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
