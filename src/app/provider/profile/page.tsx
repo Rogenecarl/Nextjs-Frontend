@@ -1,7 +1,7 @@
 "use client";
 
 import ProviderProfileTableComponent from "@/components/Provider/profile-table";
-import { useHealthcareData } from "@/components/User/healthcare/hook/use-healthcare-data";
+import { useHealthcareData } from "@/components/User/find-services/hook/use-healthcare-data";
 import { useUser } from "@/hooks/useUser";
 
 export default function ProviderProfilePage() {

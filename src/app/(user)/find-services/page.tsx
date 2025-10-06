@@ -7,7 +7,7 @@ import ProviderCard from "@/components/User/ProviderCard";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAllCategories } from "@/services/categoryService";
-import { useProviders } from "@/components/User/healthcare/hook/use-provider-search-hook";
+import { useProviders } from "@/components/User/find-services/hook/use-provider-search-hook";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategoryProps } from "@/types/types";
@@ -65,7 +65,7 @@ export default function Healthcare() {
     }
 
     const queryString = params.toString();
-    const newUrl = queryString ? `?${queryString}` : "/healthcare";
+    const newUrl = queryString ? `?${queryString}` : "/find-services";
 
     router.push(newUrl, { scroll: false });
   };
@@ -99,7 +99,7 @@ export default function Healthcare() {
 
   return (
     <UserLayout>
-      <div className="relative container mx-auto px-6 py-8">
+      <div className="relative container mx-auto px-6 py-2">
         <div className="mb-6 hidden text-center md:block">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
             Health Care Services in{" "}

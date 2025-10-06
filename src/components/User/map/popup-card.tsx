@@ -149,7 +149,7 @@ export const createPopupContent = (
           <button 
             class="primary-btn" 
             style="background-color: ${color};"
-            onclick="window.location.href='/providerdetails/${provider?.id}'"
+            onclick="window.location.href='/provider-details/${provider?.id}'"
           >
             View Details
           </button>

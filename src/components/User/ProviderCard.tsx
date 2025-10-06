@@ -83,7 +83,7 @@ export default function ProviderCard({
                                 Book Now
                             </Button>
                         </Link>
-                        <Link href={`/providerdetails/${provider.id}`}>
+                        <Link href={`/provider-details/${provider.id}`}>
                             <Button
                                 variant="outline"
                                 className="flex-1 border-gray-300 text-gray-700 transition-colors duration-200 hover:bg-gray-50 cursor-pointer "

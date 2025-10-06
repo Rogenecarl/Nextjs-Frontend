@@ -44,7 +44,7 @@ export const useLogin = () => {
                         router.push('/provider/dashboard');
                         break;
                     default:
-                        router.push('/healthcare');
+                        router.push('/find-services');
                         break;
                 }
             } else {

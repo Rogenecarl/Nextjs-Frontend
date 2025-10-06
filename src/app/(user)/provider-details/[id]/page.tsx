@@ -1,6 +1,6 @@
 "use client";
 
-import { useHealthcareData } from "@/components/User/healthcare/hook/use-healthcare-data";
+import { useHealthcareData } from "@/components/User/find-services/hook/use-healthcare-data";
 import UserLayout from "@/components/User/layout/user-layout";
 import ProviderDetailsContent from "@/components/User/providerdetails/provider-details";
 import { useParams } from "next/navigation"; // to get [id] from URL

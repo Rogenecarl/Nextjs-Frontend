@@ -1,7 +1,7 @@
 "use client";
 
 import BookingSummary from "@/components/User/appointment/set-appointment-step3";
-import { useHealthcareData } from "@/components/User/healthcare/hook/use-healthcare-data";
+import { useHealthcareData } from "@/components/User/find-services/hook/use-healthcare-data";
 import UserLayout from "@/components/User/layout/user-layout";
 import { useParams } from "next/navigation";
 
