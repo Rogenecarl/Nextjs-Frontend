@@ -46,8 +46,6 @@ export function Appointments({
     useState<AppointmentProps | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ALL useMemo, filtering, sorting, and pagination logic is REMOVED.
-
   const handleAppointmentClick = (appointment: AppointmentProps) => {
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
@@ -56,21 +54,18 @@ export function Appointments({
   const handleClearFilters = () => {
     onAdvancedFilterChange({
       search: "",
-      status: null /* add other filters here */,
+      status: null,
     });
   };
 
   return (
     <div className="space-y-6">
       <AppointmentFilter
-        // Pass down the current filter values
         activeFilter={filters.status === null ? "all" : filters.status}
         searchQuery={filters.search ?? ""}
-        // Pass down the handler functions
         onFilterChange={onPrimaryFilterChange}
         onSearchChange={(query) => onAdvancedFilterChange({ search: query })}
         onClearFilters={handleClearFilters}
-        // Pass the appointment counts from the API
         appointmentCounts={appointmentCounts || {
           all: 0,
           pending: 0,
@@ -80,27 +75,26 @@ export function Appointments({
         }}
       />
 
-      {/* Now we handle loading and error states here */}
+      {/* Loading and Error States */}
       {isLoading && (
-        <div className="bg-white rounded-xl border p-6 text-center">
-          Loading appointments...
+        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
+          <div className="text-gray-600">Loading appointments...</div>
         </div>
       )}
 
       {isError && (
-        <div className="bg-white rounded-xl border p-6 text-center text-red-500">
-          Error loading appointments.
+        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
+          <div className="text-red-600">Error loading appointments.</div>
         </div>
       )}
 
+      {/* Main Content */}
       {!isLoading && !isError && (
         <>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <AppointmentsTable
-              appointments={appointments} // Pass the already-paginated data
-              onAppointmentClick={handleAppointmentClick}
-            />
-          </div>
+          <AppointmentsTable
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+          />
 
           {paginationMeta && (
             <AppointmentsPagination

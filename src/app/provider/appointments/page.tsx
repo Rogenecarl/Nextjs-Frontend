@@ -68,9 +68,6 @@ export default function AppointmentsPage() {
         setFilters(prev => ({ ...prev, per_page: size, page: 1 }));
     };
 
-    // NOTE: Appointment counts can now come from a separate, quick API call
-    // for better performance, or be omitted for now. For simplicity, we'll pass undefined.
-
     return (
         <ProviderLayout>
             <div className="min-h-screen bg-gray-50">
@@ -79,12 +76,11 @@ export default function AppointmentsPage() {
                     onSectionChange={setActiveSection}
                 />
 
-                <main className="p-4 sm:p-6 max-w-7xl mx-auto">
+                <main className="px-6 py-8 max-w-7xl mx-auto">
                     {activeSection === "calendar" ? (
                         <Calendar appointments={appointments as any} events={[]} />
                     ) : (
                         <AppointmentsSection
-                            // Pass down the data and handlers
                             isLoading={isLoading}
                             isError={isError}
                             appointments={appointments}
