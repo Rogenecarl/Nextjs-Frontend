@@ -30,12 +30,12 @@ import {
   DollarSign,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { Appointment } from "@/types/calendar";
+import { AppointmentProps } from "@/types/types";
 import { cn } from "@/lib/utils";
 
-interface AppointmentsListProps {
-  appointments: Appointment[];
-  onAppointmentClick?: (appointment: Appointment) => void;
+interface AppointmentsTableProps {
+  appointments: AppointmentProps[];
+  onAppointmentClick?: (appointment: AppointmentProps) => void;
 }
 
 const statusConfig = {
@@ -59,12 +59,17 @@ const statusConfig = {
     color: "bg-red-100 text-red-800 border-red-200",
     icon: XCircle,
   },
+  no_show: {
+    label: "No Show",
+    color: "bg-gray-100 text-gray-800 border-gray-200",
+    icon: XCircle,
+  },
 };
 
-export function AppointmentsList({
+export function AppointmentsTable({
   appointments,
   onAppointmentClick,
-}: AppointmentsListProps) {
+}: AppointmentsTableProps) {
   const [selectedAppointments, setSelectedAppointments] = useState<string[]>(
     []
   );
@@ -72,14 +77,6 @@ export function AppointmentsList({
     "date" | "patient" | "service" | "status"
   >("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedAppointments(appointments.map((apt) => apt.id));
-    } else {
-      setSelectedAppointments([]);
-    }
-  };
 
   const handleSelectAppointment = (appointmentId: string, checked: boolean) => {
     if (checked) {
@@ -104,13 +101,15 @@ export function AppointmentsList({
 
     switch (sortBy) {
       case "date":
-        comparison = a.date.getTime() - b.date.getTime();
+        comparison = new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
         break;
       case "patient":
-        comparison = a.patient.name.localeCompare(b.patient.name);
+        comparison = a.user.name.localeCompare(b.user.name);
         break;
       case "service":
-        comparison = a.service.name.localeCompare(b.service.name);
+        const aServiceName = a.services[0]?.name || '';
+        const bServiceName = b.services[0]?.name || '';
+        comparison = aServiceName.localeCompare(bServiceName);
         break;
       case "status":
         comparison = a.status.localeCompare(b.status);
@@ -177,7 +176,7 @@ export function AppointmentsList({
                   }
                 }}
               >
-                Patient
+                Name
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-gray-100"
@@ -205,7 +204,6 @@ export function AppointmentsList({
               >
                 Status
               </TableHead>
-              <TableHead>Contact</TableHead>
               <TableHead>Price</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
@@ -213,7 +211,7 @@ export function AppointmentsList({
           <TableBody>
             {sortedAppointments.map((appointment) => {
               const StatusIcon = statusConfig[appointment.status].icon;
-              const isSelected = selectedAppointments.includes(appointment.id);
+              const isSelected = selectedAppointments.includes(appointment.id.toString());
 
               return (
                 <TableRow
@@ -228,10 +226,10 @@ export function AppointmentsList({
                   <TableCell>
                     <div className="space-y-1">
                       <div className="font-medium text-gray-900">
-                        {format(appointment.date, "MMM dd, yyyy")}
+                        {format(new Date(appointment.start_time), "MMM dd, yyyy")}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {appointment.startTime} - {appointment.endTime}
+                        {format(new Date(appointment.start_time), "h:mm a")} - {format(new Date(appointment.end_time), "h:mm a")}
                       </div>
                     </div>
                   </TableCell>
@@ -240,16 +238,15 @@ export function AppointmentsList({
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
-                          {getInitials(appointment.patient.name)}
+                          {getInitials(appointment.user.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {appointment.patient.name}
+                          {appointment.user.name}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Age {appointment.patient.age} •{" "}
-                          {appointment.patient.gender}
+                          {appointment.user.email}
                         </div>
                       </div>
                     </div>
@@ -258,11 +255,10 @@ export function AppointmentsList({
                   <TableCell>
                     <div className="space-y-1">
                       <div className="font-medium text-gray-900">
-                        {appointment.service.name}
+                        {appointment.services.map(s => s.name).join(', ')}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {appointment.service.category} •{" "}
-                        {appointment.service.duration}min
+                        {appointment.services.length} service{appointment.services.length > 1 ? 's' : ''}
                       </div>
                     </div>
                   </TableCell>
@@ -280,22 +276,10 @@ export function AppointmentsList({
                     </Badge>
                   </TableCell>
 
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
                       <DollarSign className="h-4 w-4" />
-                      {appointment.service.price.min}-
-                      {appointment.service.price.max}
+                      {appointment.total_price}
                     </div>
                   </TableCell>
 
@@ -312,8 +296,6 @@ export function AppointmentsList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Appointment</DropdownMenuItem>
-                        <DropdownMenuItem>Reschedule</DropdownMenuItem>
                         <DropdownMenuItem>Send Reminder</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
                           Cancel Appointment
@@ -333,7 +315,7 @@ export function AppointmentsList({
         <div className="space-y-3 p-4">
           {sortedAppointments.map((appointment) => {
             const StatusIcon = statusConfig[appointment.status].icon;
-            const isSelected = selectedAppointments.includes(appointment.id);
+            const isSelected = selectedAppointments.includes(appointment.id.toString());
 
             return (
               <div
@@ -350,7 +332,7 @@ export function AppointmentsList({
                       checked={isSelected}
                       onCheckedChange={(checked) =>
                         handleSelectAppointment(
-                          appointment.id,
+                          appointment.id.toString(),
                           checked as boolean
                         )
                       }
@@ -358,16 +340,15 @@ export function AppointmentsList({
                     />
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-gray-100 text-gray-600 text-sm">
-                        {getInitials(appointment.patient.name)}
+                        {getInitials(appointment.user.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {appointment.patient.name}
+                        {appointment.user.name}
                       </div>
                       <div className="text-sm text-gray-500">
-                        Age {appointment.patient.age} •{" "}
-                        {appointment.patient.gender}
+                        {appointment.user.email}
                       </div>
                     </div>
                   </div>
@@ -398,10 +379,10 @@ export function AppointmentsList({
                       Date & Time
                     </div>
                     <div className="text-sm font-medium text-gray-900">
-                      {format(appointment.date, "MMM dd, yyyy")}
+                      {format(new Date(appointment.start_time), "MMM dd, yyyy")}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {appointment.startTime} - {appointment.endTime}
+                      {format(new Date(appointment.start_time), "h:mm a")} - {format(new Date(appointment.end_time), "h:mm a")}
                     </div>
                   </div>
                   <div>
@@ -409,11 +390,10 @@ export function AppointmentsList({
                       Service
                     </div>
                     <div className="text-sm font-medium text-gray-900">
-                      {appointment.service.name}
+                      {appointment.services.map(s => s.name).join(', ')}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {appointment.service.category} •{" "}
-                      {appointment.service.duration}min
+                      {appointment.services.length} service{appointment.services.length > 1 ? 's' : ''}
                     </div>
                   </div>
                 </div>
@@ -433,8 +413,7 @@ export function AppointmentsList({
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
                       <DollarSign className="h-4 w-4" />
-                      {appointment.service.price.min}-
-                      {appointment.service.price.max}
+                      {appointment.total_price}
                     </div>
                     <div
                       className="flex items-center gap-1"

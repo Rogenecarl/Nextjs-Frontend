@@ -1,11 +1,6 @@
 "use client";
-
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
   List,
-  Plus,
   Grid3x3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

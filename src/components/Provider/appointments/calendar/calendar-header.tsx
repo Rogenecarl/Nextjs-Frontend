@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus, List, Calendar, Grid3x3 } from "lucide-react"
+import { ChevronLeft, ChevronRight, List, Calendar, Grid3x3 } from "lucide-react"
 import { format } from "date-fns"
 
 interface CalendarHeaderProps {

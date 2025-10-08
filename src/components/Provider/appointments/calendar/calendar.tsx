@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { CalendarHeader } from "@/components/Provider/appointments/calendar/calendar-header"
-import { MonthView } from "@/components/Provider/appointments/calendar/calendar-month-view"
-import { WeekView } from "@/components/Provider/appointments/calendar/calendar-week-veiw"
-import { DayView } from "@/components/Provider/appointments/calendar/calendar-day-view"
-import type { CalendarEvent, Appointment } from "@/types/calendar"
-import { Calendar, Grid3x3, List } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { CalendarHeader } from "./calendar-header";
+import { MonthView } from "./calendar-month-view";
+import { WeekView } from "./calendar-week-veiw";
+import { DayView } from "./calendar-day-view";
+import type { CalendarEvent, Appointment } from "@/types/calendar";
+import { Calendar as CalendarIcon, Grid3x3, List } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface CalendarSectionProps {
-  events: CalendarEvent[]
-  appointments: Appointment[]
+interface CalendarProps {
+  events: CalendarEvent[];
+  appointments: Appointment[];
 }
 
-export function CalendarSection({ events, appointments }: CalendarSectionProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 6))
-  const [view, setView] = useState<"day" | "week" | "month">("month")
+export function Calendar({ events, appointments }: CalendarProps) {
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 6));
+  const [view, setView] = useState<"day" | "week" | "month">("month");
 
   const viewOptions = [
     { key: "day" as const, label: "Day", icon: List },
     { key: "week" as const, label: "Week", icon: Grid3x3 },
-    { key: "month" as const, label: "Month", icon: Calendar }
-  ]
+    { key: "month" as const, label: "Month", icon: CalendarIcon },
+  ];
 
   return (
     <div className="space-y-4">
@@ -45,7 +45,7 @@ export function CalendarSection({ events, appointments }: CalendarSectionProps) 
         </div>
         <div className="grid grid-cols-3 gap-2">
           {viewOptions.map((option) => {
-            const Icon = option.icon
+            const Icon = option.icon;
             return (
               <Button
                 key={option.key}
@@ -60,7 +60,7 @@ export function CalendarSection({ events, appointments }: CalendarSectionProps) 
                 <Icon className="h-4 w-4" />
                 {option.label}
               </Button>
-            )
+            );
           })}
         </div>
       </div>
@@ -115,5 +115,5 @@ export function CalendarSection({ events, appointments }: CalendarSectionProps) 
         </div>
       </div>
     </div>
-  )
+  );
 }

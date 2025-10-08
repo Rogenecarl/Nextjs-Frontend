@@ -33,14 +33,14 @@ import {
   Edit
 } from "lucide-react"
 import { format } from "date-fns"
-import type { Appointment } from "@/types/calendar"
+import { AppointmentProps } from "@/types/types"
 import { cn } from "@/lib/utils"
 
 interface AppointmentDetailsModalProps {
-  appointment: Appointment | null
+  appointment: AppointmentProps | null
   isOpen: boolean
   onClose: () => void
-  onSave?: (appointment: Appointment) => void
+  onSave?: (appointment: AppointmentProps) => void
 }
 
 const statusConfig = {
@@ -73,7 +73,7 @@ export function AppointmentDetailsModal({
   onSave 
 }: AppointmentDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editedAppointment, setEditedAppointment] = useState<Appointment | null>(null)
+  const [editedAppointment, setEditedAppointment] = useState<AppointmentProps | null>(null)
 
   if (!appointment) return null
 
@@ -137,24 +137,20 @@ export function AppointmentDetailsModal({
             <div className="flex items-start gap-4">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className="bg-gray-200 text-gray-700">
-                  {getInitials(appointment.patient.name)}
+                  {getInitials(appointment.user.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-2">
                 <div>
-                  <div className="font-medium text-gray-900">{appointment.patient.name}</div>
+                  <div className="font-medium text-gray-900">{appointment.user.name}</div>
                   <div className="text-sm text-gray-500">
-                    Age {appointment.patient.age} • {appointment.patient.gender}
+                    Patient ID: {appointment.user.id}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Phone className="h-4 w-4" />
-                    {appointment.patient.phone}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Mail className="h-4 w-4" />
-                    {appointment.patient.email}
+                    {appointment.user.email}
                   </div>
                 </div>
               </div>
@@ -172,36 +168,36 @@ export function AppointmentDetailsModal({
                   <div className="space-y-2">
                     <Input
                       type="date"
-                      value={format(editedAppointment?.date || appointment.date, "yyyy-MM-dd")}
+                      value={format(new Date(editedAppointment?.start_time || appointment.start_time), "yyyy-MM-dd")}
                       onChange={(e) => setEditedAppointment(prev => prev ? {
                         ...prev,
-                        date: new Date(e.target.value)
+                        start_time: e.target.value + 'T' + format(new Date(prev.start_time), "HH:mm:ss")
                       } : null)}
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         type="time"
-                        value={editedAppointment?.startTime || appointment.startTime}
+                        value={format(new Date(editedAppointment?.start_time || appointment.start_time), "HH:mm")}
                         onChange={(e) => setEditedAppointment(prev => prev ? {
                           ...prev,
-                          startTime: e.target.value
+                          start_time: format(new Date(prev.start_time), "yyyy-MM-dd") + 'T' + e.target.value + ':00'
                         } : null)}
                       />
                       <Input
                         type="time"
-                        value={editedAppointment?.endTime || appointment.endTime}
+                        value={format(new Date(editedAppointment?.end_time || appointment.end_time), "HH:mm")}
                         onChange={(e) => setEditedAppointment(prev => prev ? {
                           ...prev,
-                          endTime: e.target.value
+                          end_time: format(new Date(prev.end_time), "yyyy-MM-dd") + 'T' + e.target.value + ':00'
                         } : null)}
                       />
                     </div>
                   </div>
                 ) : (
                   <div className="text-sm text-gray-900">
-                    <div>{format(appointment.date, "EEEE, MMMM dd, yyyy")}</div>
+                    <div>{format(new Date(appointment.start_time), "EEEE, MMMM dd, yyyy")}</div>
                     <div className="text-gray-600">
-                      {appointment.startTime} - {appointment.endTime}
+                      {format(new Date(appointment.start_time), "h:mm a")} - {format(new Date(appointment.end_time), "h:mm a")}
                     </div>
                   </div>
                 )}
@@ -247,9 +243,9 @@ export function AppointmentDetailsModal({
                   Service
                 </label>
                 <div className="text-sm text-gray-900">
-                  <div className="font-medium">{appointment.service.name}</div>
+                  <div className="font-medium">{appointment.services.map(s => s.name).join(', ')}</div>
                   <div className="text-gray-600">
-                    {appointment.service.category} • {appointment.service.duration} minutes
+                    {appointment.services.length} service{appointment.services.length > 1 ? 's' : ''}
                   </div>
                 </div>
               </div>
@@ -260,7 +256,7 @@ export function AppointmentDetailsModal({
                 </label>
                 <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
                   <DollarSign className="h-4 w-4" />
-                  {appointment.service.price.min} - {appointment.service.price.max}
+                  ${appointment.total_price}
                 </div>
               </div>
             </div>
@@ -306,10 +302,6 @@ export function AppointmentDetailsModal({
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>
                 Close
-              </Button>
-              <Button variant="outline">
-                <Calendar className="h-4 w-4 mr-2" />
-                Reschedule
               </Button>
               <Button>
                 <CheckCircle className="h-4 w-4 mr-2" />
