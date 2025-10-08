@@ -18,15 +18,15 @@ interface AppointmentFilterProps {
   onSearchChange: (query: string) => void;
   onClearFilters: () => void;
   // Appointment filter props
-  activeFilter?: "all" | "today" | "upcoming" | "history" | "cancelled" | null;
+  activeFilter?: "all" | "pending" | "confirmed" | "completed" | "cancelled" | null;
   onFilterChange?: (
-    filter: "today" | "upcoming" | "history" | "cancelled" | "pending" | null
+    filter: "pending" | "confirmed" | "completed" | "cancelled" | null
   ) => void;
   appointmentCounts?: {
     all: number;
-    today: number;
-    upcoming: number;
-    history: number;
+    pending: number;
+    confirmed: number;
+    completed: number;
     cancelled: number;
   };
 }
@@ -39,9 +39,9 @@ export function AppointmentFilter({
   onFilterChange,
   appointmentCounts = {
     all: 0,
-    today: 0,
-    upcoming: 0,
-    history: 0,
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
     cancelled: 0,
   },
 }: AppointmentFilterProps) {
@@ -57,25 +57,25 @@ export function AppointmentFilter({
       color: "bg-gray-100 text-gray-800",
     },
     {
-      key: "today" as const,
-      label: "Today",
+      key: "pending" as const,
+      label: "Pending",
       icon: Clock,
-      count: appointmentCounts.today,
+      count: appointmentCounts.pending,
+      color: "bg-yellow-100 text-yellow-800",
+    },
+    {
+      key: "confirmed" as const,
+      label: "Confirmed",
+      icon: CheckCircle,
+      count: appointmentCounts.confirmed,
       color: "bg-blue-100 text-blue-800",
     },
     {
-      key: "upcoming" as const,
-      label: "Upcoming",
-      icon: CheckCircle,
-      count: appointmentCounts.upcoming,
-      color: "bg-green-100 text-green-800",
-    },
-    {
-      key: "history" as const,
-      label: "History",
+      key: "completed" as const,
+      label: "Completed",
       icon: Archive,
-      count: appointmentCounts.history,
-      color: "bg-purple-100 text-purple-800",
+      count: appointmentCounts.completed,
+      color: "bg-green-100 text-green-800",
     },
     {
       key: "cancelled" as const,

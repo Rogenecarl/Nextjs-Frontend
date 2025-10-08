@@ -13,3 +13,9 @@ export const getProviderAppointments = async (filters: AppointmentFilters) => {
     const response = await axiosInstance.get(`/provider/appointments?${params.toString()}`);
     return response.data;
 };
+
+// Function to fetch appointment counts by status
+export const getProviderAppointmentCounts = async () => {
+    const response = await axiosInstance.get('/provider/appointments/counts');
+    return response.data;
+};

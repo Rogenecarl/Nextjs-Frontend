@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppointmentsNavigation } from "@/components/Provider/appointments/appointments-navigation";
 import { Calendar } from "@/components/Provider/appointments/calendar/calendar";
 import { Appointments as AppointmentsSection } from "@/components/Provider/appointments/appointments/appointments";
@@ -8,26 +9,42 @@ import { AppointmentProps } from "@/types/types";
 import ProviderLayout from "@/components/Provider/layout/ProviderLayout";
 import {
   useProviderAppointments,
+  useProviderAppointmentCounts,
   AppointmentFilters,
 } from "@/components/Provider/appointments/appointments/use-provider-appointment-hook";
 
 
 export default function AppointmentsPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [activeSection, setActiveSection] = useState<"appointments" | "calendar">("appointments");
 
-    // 1. All filter logic now lives here, in a single state object.
-    const [filters, setFilters] = useState<AppointmentFilters>({
-        page: 1,
-        per_page: 25,
-        status: null, // 'null' will represent "All Appointments"
-        search: '',
-        // Add other filters like date, service_id, etc. here
-    });
+    // Initialize filters from URL params
+    const [filters, setFilters] = useState<AppointmentFilters>(() => ({
+        page: parseInt(searchParams.get('page') || '1'),
+        per_page: parseInt(searchParams.get('per_page') || '25'),
+        status: (searchParams.get('status') as AppointmentFilters['status']) || null,
+        search: searchParams.get('search') || '',
+    }));
 
-    // 2. Fetch data using our powerful backend-connected hook.
+    // Update URL when filters change
+    useEffect(() => {
+        const params = new URLSearchParams();
+        
+        if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
+        if (filters.per_page && filters.per_page !== 25) params.set('per_page', filters.per_page.toString());
+        if (filters.status) params.set('status', filters.status);
+        if (filters.search) params.set('search', filters.search);
+
+        const newUrl = params.toString() ? `?${params.toString()}` : '';
+        router.replace(`/provider/appointments${newUrl}`, { scroll: false });
+    }, [filters, router]);
+
+    // Fetch data using our hooks
     const { data: paginatedData, isLoading, isError } = useProviderAppointments(filters);
+    const { data: appointmentCounts } = useProviderAppointmentCounts();
 
-    // 3. The component now receives its data directly from the API call.
+    // The component now receives its data directly from the API call.
     const appointments = (paginatedData as any)?.data ?? [];
     const paginationMeta = (paginatedData as any)?.meta;
 
@@ -73,6 +90,7 @@ export default function AppointmentsPage() {
                             appointments={appointments}
                             paginationMeta={paginationMeta}
                             filters={filters}
+                            appointmentCounts={appointmentCounts}
                             onPrimaryFilterChange={handlePrimaryFilterChange}
                             onAdvancedFilterChange={handleAdvancedFilterChange}
                             onPageChange={handlePageChange}

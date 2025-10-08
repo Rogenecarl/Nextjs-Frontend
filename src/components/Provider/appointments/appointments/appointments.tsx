@@ -16,6 +16,13 @@ interface AppointmentsProps {
   appointments: AppointmentProps[];
   paginationMeta?: PaginatedResponse<AppointmentProps>["meta"];
   filters: AppointmentFilters;
+  appointmentCounts?: {
+    all: number;
+    pending: number;
+    confirmed: number;
+    completed: number;
+    cancelled: number;
+  };
   onPrimaryFilterChange: (status: AppointmentFilters["status"]) => void;
   onAdvancedFilterChange: (newFilters: Partial<AppointmentFilters>) => void;
   onPageChange: (page: number) => void;
@@ -28,6 +35,7 @@ export function Appointments({
   appointments,
   paginationMeta,
   filters,
+  appointmentCounts,
   onPrimaryFilterChange,
   onAdvancedFilterChange,
   onPageChange,
@@ -56,18 +64,18 @@ export function Appointments({
     <div className="space-y-6">
       <AppointmentFilter
         // Pass down the current filter values
-        activeFilter={filters.status === null ? "all" : (filters.status === "pending" ? "all" : filters.status)}
+        activeFilter={filters.status === null ? "all" : filters.status}
         searchQuery={filters.search ?? ""}
         // Pass down the handler functions
         onFilterChange={onPrimaryFilterChange}
         onSearchChange={(query) => onAdvancedFilterChange({ search: query })}
         onClearFilters={handleClearFilters}
-        // You will need to get these from a separate API call or derive them
-        appointmentCounts={{
+        // Pass the appointment counts from the API
+        appointmentCounts={appointmentCounts || {
           all: 0,
-          today: 0,
-          upcoming: 0,
-          history: 0,
+          pending: 0,
+          confirmed: 0,
+          completed: 0,
           cancelled: 0,
         }}
       />

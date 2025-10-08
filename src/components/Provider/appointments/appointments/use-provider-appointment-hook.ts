@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProviderAppointments } from "@/services/appointmentService";
+import { getProviderAppointments, getProviderAppointmentCounts } from "@/services/appointmentService";
 
 // Define the shape of the filters state object
 export interface AppointmentFilters {
   page?: number;
   per_page?: number;
-  status?: "today" | "upcoming" | "history" | "cancelled" | "pending" | null;
+  status?: "pending" | "confirmed" | "completed" | "cancelled" | null;
   date?: string | null;
   search?: string;
 }
@@ -18,5 +18,12 @@ export const useProviderAppointments = (filters: AppointmentFilters) => {
     queryFn: () => getProviderAppointments(filters),
     // placeholderData is great for pagination to prevent UI flickering
     placeholderData: (previousData) => previousData,
+  });
+};
+
+export const useProviderAppointmentCounts = () => {
+  return useQuery({
+    queryKey: ["providerAppointmentCounts"],
+    queryFn: () => getProviderAppointmentCounts(),
   });
 };
