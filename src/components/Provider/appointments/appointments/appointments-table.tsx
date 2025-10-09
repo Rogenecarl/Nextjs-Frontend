@@ -19,12 +19,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  MoreHorizontal,
-  Calendar,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { MoreHorizontal, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { AppointmentProps } from "@/types/types";
 import { cn } from "@/lib/utils";
+import {
+  useConfirmAppointment,
+  useCompleteAppointment,
+  useCancelAppointment,
+} from "./use-provider-appointment-hook";
+import { toast } from "sonner";
 
 interface AppointmentsTableProps {
   appointments: AppointmentProps[];
@@ -62,6 +72,16 @@ export function AppointmentsTable({
     "date" | "patient" | "service" | "status"
   >("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [cancelReason, setCancelReason] = useState("");
+  const [showCancelDialog, setShowCancelDialog] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(
+    null
+  );
+
+  // Mutation hooks
+  const confirmMutation = useConfirmAppointment();
+  const completeMutation = useCompleteAppointment();
+  const cancelMutation = useCancelAppointment();
 
   const getInitials = (name: string) => {
     return name
@@ -71,19 +91,71 @@ export function AppointmentsTable({
       .toUpperCase();
   };
 
+  // Action handlers
+  const handleConfirm = async (appointmentId: string) => {
+    const loadingToast = toast.loading("Confirming appointment...");
+
+    try {
+      await confirmMutation.mutateAsync(appointmentId);
+      toast.dismiss(loadingToast);
+      toast.success("Appointment confirmed successfully");
+      setShowConfirmDialog(null);
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to confirm appointment");
+    }
+  };
+
+  const handleComplete = async (appointmentId: string) => {
+    const loadingToast = toast.loading("Marking appointment as complete...");
+
+    try {
+      await completeMutation.mutateAsync(appointmentId);
+      toast.dismiss(loadingToast);
+      toast.success("Appointment marked as complete");
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to complete appointment");
+    }
+  };
+
+  const handleCancel = async (appointmentId: string) => {
+    if (!cancelReason.trim()) {
+      toast.error("Please provide a cancellation reason");
+      return;
+    }
+
+    const loadingToast = toast.loading("Cancelling appointment...");
+
+    try {
+      await cancelMutation.mutateAsync({
+        appointmentId,
+        reason: cancelReason,
+      });
+      toast.dismiss(loadingToast);
+      toast.success("Appointment cancelled successfully");
+      setShowCancelDialog(null);
+      setCancelReason("");
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to cancel appointment");
+    }
+  };
+
   const sortedAppointments = [...appointments].sort((a, b) => {
     let comparison = 0;
 
     switch (sortBy) {
       case "date":
-        comparison = new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+        comparison =
+          new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
         break;
       case "patient":
         comparison = a.user.name.localeCompare(b.user.name);
         break;
       case "service":
-        const aServiceName = a.services[0]?.name || '';
-        const bServiceName = b.services[0]?.name || '';
+        const aServiceName = a.services[0]?.name || "";
+        const bServiceName = b.services[0]?.name || "";
         comparison = aServiceName.localeCompare(bServiceName);
         break;
       case "status":
@@ -102,10 +174,10 @@ export function AppointmentsTable({
           <TableHeader>
             <TableRow className="border-b border-gray-100">
               <TableHead className="text-gray-600 font-medium py-4">
-                Date & Time
+                Name
               </TableHead>
               <TableHead className="text-gray-600 font-medium py-4">
-                Name
+                Date & Time
               </TableHead>
               <TableHead className="text-gray-600 font-medium py-4">
                 Service
@@ -127,17 +199,6 @@ export function AppointmentsTable({
                 onClick={() => onAppointmentClick?.(appointment)}
               >
                 <TableCell className="py-4">
-                  <div className="space-y-1">
-                    <div className="font-medium text-gray-900">
-                      {format(new Date(appointment.start_time), "MMM dd, yyyy")}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {format(new Date(appointment.start_time), "h:mm a")} - {format(new Date(appointment.end_time), "h:mm a")}
-                    </div>
-                  </div>
-                </TableCell>
-
-                <TableCell className="py-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8 bg-blue-100">
                       <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-medium">
@@ -158,10 +219,23 @@ export function AppointmentsTable({
                 <TableCell className="py-4">
                   <div className="space-y-1">
                     <div className="font-medium text-gray-900">
-                      {appointment.services.map(s => s.name).join(', ')}
+                      {format(new Date(appointment.start_time), "MMM dd, yyyy")}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {appointment.services.length} service{appointment.services.length > 1 ? 's' : ''}
+                      {format(new Date(appointment.start_time), "h:mm a")} -{" "}
+                      {format(new Date(appointment.end_time), "h:mm a")}
+                    </div>
+                  </div>
+                </TableCell>
+
+                <TableCell className="py-4">
+                  <div className="space-y-1">
+                    <div className="font-medium text-gray-900">
+                      {appointment.services.map((s) => s.name).join(", ")}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {appointment.services.length} service
+                      {appointment.services.length > 1 ? "s" : ""}
                     </div>
                   </div>
                 </TableCell>
@@ -184,7 +258,10 @@ export function AppointmentsTable({
                   </div>
                 </TableCell>
 
-                <TableCell className="py-4" onClick={(e) => e.stopPropagation()}>
+                <TableCell
+                  className="py-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -196,11 +273,62 @@ export function AppointmentsTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        Cancel Appointment
-                      </DropdownMenuItem>
+                      {appointment.status === "pending" && (
+                        <>
+                          <DropdownMenuItem
+                            className="text-green-600"
+                            onClick={() =>
+                              setShowConfirmDialog(appointment.id.toString())
+                            }
+                            disabled={confirmMutation.isPending}
+                          >
+                            {confirmMutation.isPending
+                              ? "Confirming..."
+                              : "Confirm Booking"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onAppointmentClick?.(appointment)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() =>
+                              setShowCancelDialog(appointment.id.toString())
+                            }
+                          >
+                            Cancel Booking
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {appointment.status === "confirmed" && (
+                        <>
+                          <DropdownMenuItem
+                            className="text-green-600"
+                            onClick={() =>
+                              handleComplete(appointment.id.toString())
+                            }
+                            disabled={completeMutation.isPending}
+                          >
+                            {completeMutation.isPending
+                              ? "Completing..."
+                              : "Mark as Complete"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onAppointmentClick?.(appointment)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {appointment.status !== "pending" &&
+                        appointment.status !== "confirmed" && (
+                          <DropdownMenuItem
+                            onClick={() => onAppointmentClick?.(appointment)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -245,13 +373,62 @@ export function AppointmentsTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                    <DropdownMenuItem>Edit Appointment</DropdownMenuItem>
-                    <DropdownMenuItem>Reschedule</DropdownMenuItem>
-                    <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">
-                      Cancel Appointment
-                    </DropdownMenuItem>
+                    {appointment.status === "pending" && (
+                      <>
+                        <DropdownMenuItem
+                          className="text-green-600"
+                          onClick={() =>
+                            setShowConfirmDialog(appointment.id.toString())
+                          }
+                          disabled={confirmMutation.isPending}
+                        >
+                          {confirmMutation.isPending
+                            ? "Confirming..."
+                            : "Confirm Booking"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onAppointmentClick?.(appointment)}
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() =>
+                            setShowCancelDialog(appointment.id.toString())
+                          }
+                        >
+                          Cancel Booking
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {appointment.status === "confirmed" && (
+                      <>
+                        <DropdownMenuItem
+                          className="text-green-600"
+                          onClick={() =>
+                            handleComplete(appointment.id.toString())
+                          }
+                          disabled={completeMutation.isPending}
+                        >
+                          {completeMutation.isPending
+                            ? "Completing..."
+                            : "Mark as Complete"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onAppointmentClick?.(appointment)}
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {appointment.status !== "pending" &&
+                      appointment.status !== "confirmed" && (
+                        <DropdownMenuItem
+                          onClick={() => onAppointmentClick?.(appointment)}
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -265,7 +442,8 @@ export function AppointmentsTable({
                     {format(new Date(appointment.start_time), "MMM dd, yyyy")}
                   </div>
                   <div className="text-sm text-gray-600">
-                    {format(new Date(appointment.start_time), "h:mm a")} - {format(new Date(appointment.end_time), "h:mm a")}
+                    {format(new Date(appointment.start_time), "h:mm a")} -{" "}
+                    {format(new Date(appointment.end_time), "h:mm a")}
                   </div>
                 </div>
                 <div>
@@ -273,10 +451,11 @@ export function AppointmentsTable({
                     Service
                   </div>
                   <div className="text-sm font-medium text-gray-900">
-                    {appointment.services.map(s => s.name).join(', ')}
+                    {appointment.services.map((s) => s.name).join(", ")}
                   </div>
                   <div className="text-sm text-gray-600">
-                    {appointment.services.length} service{appointment.services.length > 1 ? 's' : ''}
+                    {appointment.services.length} service
+                    {appointment.services.length > 1 ? "s" : ""}
                   </div>
                 </div>
               </div>
@@ -317,6 +496,91 @@ export function AppointmentsTable({
           </Button>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <Dialog
+        open={!!showConfirmDialog}
+        onOpenChange={() => setShowConfirmDialog(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Appointment</DialogTitle>
+          </DialogHeader>
+          <p className="text-gray-600 mb-4">
+            Are you sure you want to confirm this appointment? This action will
+            notify the patient that their appointment has been confirmed.
+          </p>
+          <DialogFooter>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmDialog(null)}
+                disabled={confirmMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => handleConfirm(showConfirmDialog!)}
+                disabled={confirmMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {confirmMutation.isPending
+                  ? "Confirming..."
+                  : "Confirm Appointment"}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Dialog */}
+      <Dialog
+        open={!!showCancelDialog}
+        onOpenChange={() => {
+          setShowCancelDialog(null);
+          setCancelReason("");
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Please provide a reason for cancelling this appointment:
+            </p>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Enter cancellation reason..."
+              className="w-full p-3 border border-gray-300 rounded-md resize-none h-24"
+            />
+          </div>
+          <DialogFooter>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCancelDialog(null);
+                  setCancelReason("");
+                }}
+                disabled={cancelMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleCancel(showCancelDialog!)}
+                disabled={cancelMutation.isPending || !cancelReason.trim()}
+              >
+                {cancelMutation.isPending
+                  ? "Cancelling..."
+                  : "Cancel Appointment"}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

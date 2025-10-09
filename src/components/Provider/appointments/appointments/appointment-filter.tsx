@@ -2,13 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  X,
-  Clock,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { Search, X, Clock, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AppointmentFilterProps {
@@ -16,12 +10,11 @@ interface AppointmentFilterProps {
   onSearchChange: (query: string) => void;
   onClearFilters: () => void;
   // Appointment filter props
-  activeFilter?: "all" | "pending" | "confirmed" | "completed" | "cancelled" | null;
+  activeFilter?: "pending" | "confirmed" | "completed" | "cancelled";
   onFilterChange?: (
-    filter: "pending" | "confirmed" | "completed" | "cancelled" | null
+    filter: "pending" | "confirmed" | "completed" | "cancelled"
   ) => void;
   appointmentCounts?: {
-    all: number;
     pending: number;
     confirmed: number;
     completed: number;
@@ -33,25 +26,18 @@ export function AppointmentFilter({
   searchQuery,
   onSearchChange,
   onClearFilters,
-  activeFilter = "all",
+  activeFilter = "pending",
   onFilterChange,
   appointmentCounts = {
-    all: 0,
     pending: 0,
     confirmed: 0,
     completed: 0,
     cancelled: 0,
   },
 }: AppointmentFilterProps) {
-
   const hasActiveFilters = searchQuery;
 
   const appointmentFilters = [
-    {
-      key: null,
-      label: "All Appointments",
-      count: appointmentCounts.all,
-    },
     {
       key: "pending" as const,
       label: "Pending",
@@ -94,10 +80,10 @@ export function AppointmentFilter({
           <div className="flex flex-wrap gap-2">
             {appointmentFilters.map((filter) => {
               const Icon = filter.icon;
-              const isActive = (activeFilter === "all" && filter.key === null) || activeFilter === filter.key;
+              const isActive = activeFilter === filter.key;
               return (
                 <button
-                  key={filter.key || 'all'}
+                  key={filter.key}
                   onClick={() => onFilterChange(filter.key)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
@@ -148,9 +134,7 @@ export function AppointmentFilter({
       {/* Active Filters Summary */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-600">
-            Active filters:
-          </span>
+          <span className="text-sm text-gray-600">Active filters:</span>
           {searchQuery && (
             <Badge
               variant="outline"

@@ -19,3 +19,23 @@ export const getProviderAppointmentCounts = async () => {
     const response = await axiosInstance.get('/provider/appointments/counts');
     return response.data;
 };
+
+// Function to confirm an appointment
+export const confirmAppointment = async (appointmentId: string) => {
+    const response = await axiosInstance.post(`/appointments/${appointmentId}/confirm`);
+    return response.data;
+};
+
+// Function to mark an appointment as complete
+export const completeAppointment = async (appointmentId: string) => {
+    const response = await axiosInstance.post(`/appointments/${appointmentId}/complete`);
+    return response.data;
+};
+
+// Function to cancel an appointment (provider)
+export const cancelAppointment = async (appointmentId: string, cancellationReason: string) => {
+    const response = await axiosInstance.post(`/appointments/${appointmentId}/cancel`, {
+        cancellation_reason: cancellationReason
+    });
+    return response.data;
+};

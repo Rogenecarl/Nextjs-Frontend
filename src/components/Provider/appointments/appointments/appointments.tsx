@@ -17,7 +17,6 @@ interface AppointmentsProps {
   paginationMeta?: PaginatedResponse<AppointmentProps>["meta"];
   filters: AppointmentFilters;
   appointmentCounts?: {
-    all: number;
     pending: number;
     confirmed: number;
     completed: number;
@@ -54,25 +53,26 @@ export function Appointments({
   const handleClearFilters = () => {
     onAdvancedFilterChange({
       search: "",
-      status: null,
+      status: "pending",
     });
   };
 
   return (
     <div className="space-y-6">
       <AppointmentFilter
-        activeFilter={filters.status === null ? "all" : filters.status}
+        activeFilter={filters.status || "pending"}
         searchQuery={filters.search ?? ""}
         onFilterChange={onPrimaryFilterChange}
         onSearchChange={(query) => onAdvancedFilterChange({ search: query })}
         onClearFilters={handleClearFilters}
-        appointmentCounts={appointmentCounts || {
-          all: 0,
-          pending: 0,
-          confirmed: 0,
-          completed: 0,
-          cancelled: 0,
-        }}
+        appointmentCounts={
+          appointmentCounts || {
+            pending: 0,
+            confirmed: 0,
+            completed: 0,
+            cancelled: 0,
+          }
+        }
       />
 
       {/* Loading and Error States */}
@@ -103,7 +103,12 @@ export function Appointments({
               pageSize={paginationMeta.per_page}
               totalItems={paginationMeta.total}
               filteredItems={paginationMeta.total}
-              hasActiveFilters={!!(filters.search || filters.status)}
+              hasActiveFilters={
+                !!(
+                  filters.search ||
+                  (filters.status && filters.status !== "pending")
+                )
+              }
               onPageChange={onPageChange}
               onPageSizeChange={onPageSizeChange}
             />

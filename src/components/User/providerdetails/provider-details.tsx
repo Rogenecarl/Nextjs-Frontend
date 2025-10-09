@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 interface ProviderDetailsContentProps {
   provider: ProviderProps;
@@ -147,12 +148,14 @@ export default function ProviderDetailsContent({
                 <Heart className="fill-red-500 text-white" />
               </Button>
 
-              <Button
-                size="lg"
-                className="bg-blue-600 px-8 font-semibold text-white hover:bg-blue-700"
-              >
-                Book Appointment
-              </Button>
+              <Link href={`/appointment/service/${provider.id}`}>
+                <Button
+                  size="lg"
+                  className="bg-blue-600 px-8 font-semibold text-white hover:bg-blue-700"
+                >
+                  Book Appointment
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

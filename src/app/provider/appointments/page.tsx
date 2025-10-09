@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AppointmentsNavigation } from "@/components/Provider/appointments/appointments-navigation";
 import { Calendar } from "@/components/Provider/appointments/calendar/calendar";
 import { Appointments as AppointmentsSection } from "@/components/Provider/appointments/appointments/appointments";
-import { AppointmentProps } from "@/types/types";
 import ProviderLayout from "@/components/Provider/layout/ProviderLayout";
 import {
   useProviderAppointments,
@@ -23,7 +22,7 @@ export default function AppointmentsPage() {
     const [filters, setFilters] = useState<AppointmentFilters>(() => ({
         page: parseInt(searchParams.get('page') || '1'),
         per_page: parseInt(searchParams.get('per_page') || '25'),
-        status: (searchParams.get('status') as AppointmentFilters['status']) || null,
+        status: (searchParams.get('status') as AppointmentFilters['status']) || 'pending',
         search: searchParams.get('search') || '',
     }));
 

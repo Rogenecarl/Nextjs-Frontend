@@ -91,7 +91,7 @@ export const useCancelBooking = () => {
 
     return useMutation<any, Error, number>({
         mutationFn: async (appointmentId: number) => {
-            const response = await axiosInstance.post(`${API_URL}/appointments/${appointmentId}/cancel`);
+            const response = await axiosInstance.post(`${API_URL}/appointments/${appointmentId}/canceluser`);
             return response.data;
         },
         onSuccess: (data, appointmentId) => {
