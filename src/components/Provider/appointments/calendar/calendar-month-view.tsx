@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CalendarEvent, Appointment } from "@/types/calendar";
 import {
   format,
@@ -14,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { AppointmentCard } from "./appointment-card";
+import { DayAppointmentsDialog } from "./day-appointments-dialog";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -35,6 +37,8 @@ export function MonthView({
   events,
   appointments = [],
 }: MonthViewProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dayDialogOpen, setDayDialogOpen] = useState(false);
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart);
@@ -51,6 +55,12 @@ export function MonthView({
     return appointments.filter((appointment) =>
       isSameDay(new Date(appointment.start_time), day)
     );
+  };
+
+  const handleShowMoreClick = (day: Date, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedDate(day);
+    setDayDialogOpen(true);
   };
 
   return (
@@ -145,7 +155,10 @@ export function MonthView({
                   }
                 })}
                 {remainingCount > 0 && (
-                  <div className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">
+                  <div
+                    onClick={(e) => handleShowMoreClick(day, e)}
+                    className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  >
                     +{remainingCount} more
                   </div>
                 )}
@@ -154,6 +167,17 @@ export function MonthView({
           );
         })}
       </div>
+
+      {/* Day Appointments Dialog */}
+      {selectedDate && (
+        <DayAppointmentsDialog
+          date={selectedDate}
+          appointments={getAppointmentsForDay(selectedDate)}
+          events={getEventsForDay(selectedDate)}
+          open={dayDialogOpen}
+          onOpenChange={setDayDialogOpen}
+        />
+      )}
     </div>
   );
 }
