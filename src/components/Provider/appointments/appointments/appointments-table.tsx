@@ -26,7 +26,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { MoreHorizontal, Calendar } from "lucide-react";
-import { format } from "date-fns";
 import { AppointmentProps } from "@/types/types";
 import { cn } from "@/lib/utils";
 import {
@@ -219,11 +218,10 @@ export function AppointmentsTable({
                 <TableCell className="py-4">
                   <div className="space-y-1">
                     <div className="font-medium text-gray-900">
-                      {format(new Date(appointment.start_time), "MMM dd, yyyy")}
+                      {appointment.formatted_date}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {format(new Date(appointment.start_time), "h:mm a")} -{" "}
-                      {format(new Date(appointment.end_time), "h:mm a")}
+                      {appointment.formatted_start_time} - {appointment.formatted_end_time}
                     </div>
                   </div>
                 </TableCell>
@@ -439,11 +437,10 @@ export function AppointmentsTable({
                     Date & Time
                   </div>
                   <div className="text-sm font-medium text-gray-900">
-                    {format(new Date(appointment.start_time), "MMM dd, yyyy")}
+                    {appointment.formatted_date}
                   </div>
                   <div className="text-sm text-gray-600">
-                    {format(new Date(appointment.start_time), "h:mm a")} -{" "}
-                    {format(new Date(appointment.end_time), "h:mm a")}
+                    {appointment.formatted_start_time} - {appointment.formatted_end_time}
                   </div>
                 </div>
                 <div>

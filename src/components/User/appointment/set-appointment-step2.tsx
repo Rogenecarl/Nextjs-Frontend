@@ -32,15 +32,15 @@ export default function DateTimeSelection({
   provider,
 }: DateTimeSelectionProps) {
   const router = useRouter();
-  
+
   // Use booking store
-  const { 
-    setData, 
-    selectedServices, 
-    selectedDate: storedDate, 
+  const {
+    setData,
+    selectedServices,
+    selectedDate: storedDate,
     selectedTime: storedTime,
     selectedSlot: storedSlot,
-    providerId 
+    providerId,
   } = useBookingStore();
 
   const form = useForm<BookingDateTimeFormType>({
@@ -60,7 +60,10 @@ export default function DateTimeSelection({
   // Restore stored data on component mount
   useEffect(() => {
     if (storedDate) {
-      setValue("selectedDate", storedDate);
+      // Ensure storedDate is converted to Date object if it's a string
+      const dateObj =
+        storedDate instanceof Date ? storedDate : new Date(storedDate);
+      setValue("selectedDate", dateObj);
     }
     if (storedTime) {
       setValue("selectedTime", storedTime);
@@ -125,13 +128,18 @@ export default function DateTimeSelection({
 
   const getSelectedDateString = () => {
     if (!selectedDate) return "";
+
+    // Ensure selectedDate is a Date object
+    const dateObj =
+      selectedDate instanceof Date ? selectedDate : new Date(selectedDate);
+
     const options: Intl.DateTimeFormatOptions = {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     };
-    return selectedDate.toLocaleDateString("en-US", options);
+    return dateObj.toLocaleDateString("en-US", options);
   };
 
   const onSubmit = (data: BookingDateTimeFormType) => {

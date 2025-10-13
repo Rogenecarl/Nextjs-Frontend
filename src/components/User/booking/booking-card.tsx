@@ -11,7 +11,7 @@ import {
   useUserAppointments,
   useCancelBooking,
 } from "@/hooks/useBookingMutation";
-import { format } from "date-fns";
+
 
 type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
 
@@ -20,6 +20,9 @@ interface Appointment {
   appointment_number: string;
   start_time: string;
   end_time: string;
+  formatted_start_time: string;
+  formatted_end_time: string;
+  formatted_date: string;
   status: BookingStatus;
   notes?: string;
   total_price: number;
@@ -44,15 +47,12 @@ interface Appointment {
 
 // Helper function to format appointment data for display
 const formatAppointmentForDisplay = (appointment: Appointment) => {
-  const startDate = new Date(appointment.start_time);
-  const endDate = new Date(appointment.end_time);
-
   return {
     id: appointment.id.toString(),
     title: appointment.provider.name,
     appointmentNumber: appointment.appointment_number,
-    date: format(startDate, "MMM dd, yyyy"),
-    time: `${format(startDate, "h:mm a")} - ${format(endDate, "h:mm a")}`,
+    date: appointment.formatted_date,
+    time: `${appointment.formatted_start_time} - ${appointment.formatted_end_time}`,
     provider: appointment.provider.name,
     services: appointment.services,
     price: appointment.total_price,

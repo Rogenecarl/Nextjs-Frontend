@@ -1,95 +1,90 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useMemo } from "react";
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+} from "date-fns";
+import { useProviderCalendarAppointments } from "./use-provider-calendar-hook";
+
 import { CalendarHeader } from "./calendar-header";
 import { MonthView } from "./calendar-month-view";
 import { WeekView } from "./calendar-week-veiw";
 import { DayView } from "./calendar-day-view";
-import type { CalendarEvent, Appointment } from "@/types/calendar";
-import { Calendar as CalendarIcon, Grid3x3, List } from "lucide-react";
-import { cn } from "@/lib/utils";
+import type { CalendarEvent } from "@/types/calendar";
 
-interface CalendarProps {
-  events: CalendarEvent[];
-  appointments: Appointment[];
-}
-
-export function Calendar({ events, appointments }: CalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 6));
+// This component no longer needs to receive appointments as a prop.
+// It will fetch its own data.
+export function Calendar() {
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month">("month");
 
-  const viewOptions = [
-    { key: "day" as const, label: "Day", icon: List },
-    { key: "week" as const, label: "Week", icon: Grid3x3 },
-    { key: "month" as const, label: "Month", icon: CalendarIcon },
-  ];
+  // 1. Calculate the start and end dates based on the current view.
+  // useMemo ensures this only recalculates when the view or date changes.
+  const dateRange = useMemo(() => {
+    let start, end;
+    if (view === "month") {
+      start = startOfWeek(startOfMonth(currentDate));
+      end = endOfWeek(endOfMonth(currentDate));
+    } else if (view === "week") {
+      start = startOfWeek(currentDate, { weekStartsOn: 1 }); // Assuming week starts on Monday
+      end = endOfWeek(currentDate, { weekStartsOn: 1 });
+    } else {
+      // day
+      start = currentDate;
+      end = currentDate;
+    }
+    return {
+      start_date: format(start, "yyyy-MM-dd"),
+      end_date: format(end, "yyyy-MM-dd"),
+    };
+  }, [currentDate, view]);
+
+  // 2. Fetch the appointments using our new hook and the calculated date range.
+  const { data: appointments = [], isLoading } =
+    useProviderCalendarAppointments(dateRange);
+
+  // TODO: Implement event fetching logic if needed. For now, it's an empty array.
+  const events: CalendarEvent[] = [];
 
   return (
     <div className="space-y-4">
-      {/* Calendar Controls */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <CalendarHeader
-          currentDate={currentDate}
-          view={view}
-          onViewChange={setView}
-          onDateChange={setCurrentDate}
-          eventCount={events.length}
-        />
-      </div>
+      <CalendarHeader
+        currentDate={currentDate}
+        view={view}
+        onViewChange={setView}
+        onDateChange={setCurrentDate}
+        eventCount={events.length + appointments.length} // Show total count
+      />
 
-      {/* View Toggle - Mobile Friendly */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 lg:hidden">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-medium text-gray-900">Calendar View</h3>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {viewOptions.map((option) => {
-            const Icon = option.icon;
-            return (
-              <Button
-                key={option.key}
-                variant={view === option.key ? "default" : "outline"}
-                size="sm"
-                onClick={() => setView(option.key)}
-                className={cn(
-                  "gap-2 justify-center",
-                  view === option.key && "bg-cyan-500 hover:bg-cyan-600"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {option.label}
-              </Button>
-            );
-          })}
-        </div>
-      </div>
+      {/* We can add a loading indicator here for better UX */}
+      {isLoading && <div className="text-center p-8">Loading calendar...</div>}
 
-      {/* Calendar Views */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="min-h-[600px]">
-          {view === "month" && (
-            <MonthView
-              currentDate={currentDate}
-              events={events}
-              appointments={appointments}
-            />
-          )}
-          {view === "week" && (
-            <WeekView
-              currentDate={currentDate}
-              events={events}
-              appointments={appointments}
-            />
-          )}
-          {view === "day" && (
-            <DayView
-              currentDate={currentDate}
-              events={events}
-              appointments={appointments}
-            />
-          )}
-        </div>
+      {/* Pass the fetched appointments down to the view components */}
+      <div className="min-h-[600px]">
+        {!isLoading && view === "month" && (
+          <MonthView
+            currentDate={currentDate}
+            appointments={appointments}
+            events={events}
+          />
+        )}
+        {!isLoading && view === "week" && (
+          <WeekView
+            currentDate={currentDate}
+            appointments={appointments}
+            events={events}
+          />
+        )}
+        {!isLoading && view === "day" && (
+          <DayView
+            currentDate={currentDate}
+            appointments={appointments}
+          />
+        )}
       </div>
 
       {/* Calendar Legend */}

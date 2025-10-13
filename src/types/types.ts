@@ -72,6 +72,9 @@ export interface AppointmentProps {
   appointment_number: string;
   start_time: string;
   end_time: string;
+  formatted_start_time: string;
+  formatted_end_time: string;
+  formatted_date: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   notes?: string;
   total_price: number;
