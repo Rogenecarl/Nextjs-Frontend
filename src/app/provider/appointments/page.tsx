@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppointmentsNavigation } from "@/components/Provider/appointments/appointments-navigation";
 import { Calendar } from "@/components/Provider/appointments/calendar/calendar";
@@ -12,7 +12,7 @@ import {
   AppointmentFilters,
 } from "@/components/Provider/appointments/appointments/use-provider-appointment-hook";
 
-export default function AppointmentsPage() {
+function AppointmentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState<
@@ -105,5 +105,13 @@ export default function AppointmentsPage() {
         </main>
       </div>
     </ProviderLayout>
+  );
+}
+
+export default function AppointmentsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AppointmentsPageContent />
+    </Suspense>
   );
 }

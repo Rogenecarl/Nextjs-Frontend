@@ -7,6 +7,7 @@ import { Menu, X, MapPin, Heart, Calendar, Search } from "lucide-react";
 import AvatarDropdownmenu from "../avatar";
 import { useUser } from "@/hooks/useUser";
 import Image from "next/image";
+import NotificationBell from "../notification";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,7 +61,10 @@ export default function Navbar() {
 
           {/* Show Avatar menu if user is authenticated, otherwise show auth buttons */}
           {user ? (
-            <AvatarDropdownmenu user={user} />
+            <div className="flex items-center space-x-3">
+              <NotificationBell />
+              <AvatarDropdownmenu user={user} />
+            </div>
           ) : (
             <div className="hidden md:flex items-center space-x-3">
               <Link href="/auth/login">

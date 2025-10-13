@@ -7,6 +7,7 @@ import { Menu, X, MapPin, Heart, Calendar, Search } from "lucide-react";
 import AvatarDropdownmenu from "../avatar";
 import { useUser } from "@/hooks/useUser";
 import AvatarLoadingSkeleton from "../skeletons/avatar-skeleton";
+import NotificationBell from "../notification";
 
 export default function ProviderNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,9 +22,7 @@ export default function ProviderNavbar() {
     { name: "Appointments", href: "/provider/appointments" },
     { name: "Services", href: "/provider/services" },
     { name: "Schedule", href: "/provider/schedule" },
-    { name: "Profile", href: "/provider/profile" },
-    { name: "Analytics", href: "/provider/analytics" },
-    { name: "Documents", href: "/provider/documents" },
+    { name: "Provider Profile", href: "/provider/profile" },
     { name: "Reviews", href: "/provider/reviews" },
   ];
 
@@ -95,7 +94,7 @@ export default function ProviderNavbar() {
           </div>
 
           {/* Show Avatar menu if user is authenticated, otherwise show auth buttons */}
-          <div>
+          <div className="flex items-center space-x-3">
             {isLoading && user ? (
               <AvatarLoadingSkeleton />
             ) : !user ? (
@@ -115,7 +114,10 @@ export default function ProviderNavbar() {
                 </Link>
               </div>
             ) : (
-              <AvatarDropdownmenu user={user} />
+              <>
+                <NotificationBell />
+                <AvatarDropdownmenu user={user} />
+              </>
             )}
           </div>
 
