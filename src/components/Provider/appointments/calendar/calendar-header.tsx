@@ -50,7 +50,7 @@ export function CalendarHeader({ currentDate, view, onViewChange, onDateChange, 
           {/* Month/Year and Navigation */}
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-gray-900">{format(currentDate, "MMMM yyyy")}</h1>
-            <span className="text-sm text-gray-500">{eventCount} events</span>
+            {/* <span className="text-sm text-gray-500">{eventCount} Appointments</span> */}
           </div>
 
           <div className="flex items-center gap-1">

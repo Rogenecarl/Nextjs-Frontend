@@ -3,8 +3,8 @@
 import type { CalendarEvent, Appointment } from "@/types/calendar";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppointmentCard } from "./appointment-card";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -12,13 +12,7 @@ interface WeekViewProps {
   appointments?: Appointment[];
 }
 
-const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-  completed: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-red-100 text-red-800 border-red-200",
-  no_show: "bg-gray-100 text-gray-800 border-gray-200",
-};
+
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -127,23 +121,11 @@ export function WeekView({
                     className="border-r border-b border-gray-200 min-h-[60px] last:border-r-0 hover:bg-gray-50 transition-colors p-1 relative"
                   >
                     {appointment && (
-                      <div
-                        className={cn(
-                          "absolute inset-1 rounded text-xs p-2 border",
-                          statusColors[appointment.status]
-                        )}
-                      >
-                        <div className="font-medium truncate">
-                          {appointment.user.name}
-                        </div>
-                        <div className="text-[10px] opacity-80 truncate">
-                          {appointment.services.map((s) => s.name).join(", ")}
-                        </div>
-                        <div className="text-[10px] opacity-80">
-                          {appointment.formatted_start_time} -{" "}
-                          {appointment.formatted_end_time}
-                        </div>
-                      </div>
+                      <AppointmentCard
+                        appointment={appointment}
+                        variant="compact"
+                        className="absolute inset-1"
+                      />
                     )}
                   </div>
                 );

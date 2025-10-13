@@ -13,7 +13,7 @@ import {
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
+import { AppointmentCard } from "./appointment-card";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -28,14 +28,6 @@ const eventColorClasses = {
   orange: "bg-orange-100 text-orange-700 border-orange-200",
   red: "bg-red-100 text-red-700 border-red-200",
   purple: "bg-purple-100 text-purple-700 border-purple-200",
-};
-
-const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-  completed: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-red-100 text-red-800 border-red-200",
-  no_show: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
 export function MonthView({
@@ -142,34 +134,13 @@ export function MonthView({
                     );
                   } else {
                     const appointment = item.data as Appointment;
-                    const StatusIcon =
-                      appointment.status === "pending"
-                        ? Clock
-                        : appointment.status === "confirmed"
-                        ? CheckCircle
-                        : appointment.status === "completed"
-                        ? CheckCircle
-                        : XCircle;
 
                     return (
-                      <div
+                      <AppointmentCard
                         key={`appointment-${appointment.id}`}
-                        className={cn(
-                          "text-xs px-2 py-1 rounded border truncate",
-                          statusColors[appointment.status]
-                        )}
-                      >
-                        <div className="flex items-center gap-1">
-                          <StatusIcon className="h-3 w-3" />
-                          <span className="font-medium truncate">
-                            {appointment.user.name}
-                          </span>
-                        </div>
-                        <div className="text-[10px] opacity-80">
-                          {appointment.formatted_start_time} -{" "}
-                          {appointment.formatted_end_time}
-                        </div>
-                      </div>
+                        appointment={appointment}
+                        variant="inline"
+                      />
                     );
                   }
                 })}

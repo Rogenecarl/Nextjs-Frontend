@@ -83,6 +83,7 @@ export function Calendar() {
           <DayView
             currentDate={currentDate}
             appointments={appointments}
+            onDateChange={setCurrentDate}
           />
         )}
       </div>

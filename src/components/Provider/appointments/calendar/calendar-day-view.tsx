@@ -7,10 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppointmentCard } from "./appointment-card";
 
 interface DayViewProps {
   currentDate: Date;
   appointments?: Appointment[];
+  onDateChange?: (date: Date) => void;
 }
 
 // Define status configurations for styling
@@ -54,7 +56,11 @@ const getInitials = (name: string = "") => {
     .toUpperCase();
 };
 
-export function DayView({ currentDate, appointments = [] }: DayViewProps) {
+export function DayView({
+  currentDate,
+  appointments = [],
+  onDateChange,
+}: DayViewProps) {
   // Filter appointments to get only those for the currently viewed date
   const dayAppointments = appointments.filter((appointment) =>
     isSameDay(new Date(appointment.start_time), currentDate)
@@ -63,7 +69,23 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
   // Find the first appointment that starts within a given hour
   const getAppointmentForHour = (hour: number) => {
     return dayAppointments.find((apt) => {
-      const startHour = new Date(apt.start_time).getHours();
+      // Parse the formatted start time instead of the ISO string
+      // Extract hour from formatted time like "1:30 PM"
+      const timeMatch = apt.formatted_start_time.match(
+        /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+      );
+      if (!timeMatch) return false;
+
+      let startHour = parseInt(timeMatch[1]);
+      const period = timeMatch[3].toUpperCase();
+
+      // Convert to 24-hour format
+      if (period === "PM" && startHour !== 12) {
+        startHour += 12;
+      } else if (period === "AM" && startHour === 12) {
+        startHour = 0;
+      }
+
       return startHour === hour;
     });
   };
@@ -84,10 +106,6 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
         <div className="overflow-auto max-h-[calc(100vh-250px)]">
           {hours.map((hour) => {
             const appointment = getAppointmentForHour(hour);
-            const StatusIcon = appointment
-              ? statusConfig[appointment.status as keyof typeof statusConfig]
-                  .icon
-              : null;
 
             return (
               <div key={hour} className="flex border-b border-gray-200">
@@ -95,37 +113,12 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
                   {format(new Date().setHours(hour), "h a")}
                 </div>
                 <div className="flex-1 min-h-[60px] hover:bg-gray-50 transition-colors p-2 relative">
-                  {appointment && StatusIcon && (
-                    <div
-                      className={cn(
-                        "absolute inset-2 rounded-lg border p-3",
-                        statusConfig[
-                          appointment.status as keyof typeof statusConfig
-                        ].color
-                      )}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <StatusIcon className="h-4 w-4" />
-                          <span className="font-medium text-sm">
-                            {appointment.formatted_start_time} -{" "}
-                            {appointment.formatted_end_time}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {appointment.status}
-                        </Badge>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="font-semibold">
-                          {appointment.user.name}
-                        </div>
-                        <div className="text-sm opacity-80 truncate">
-                          {/* Join the names of all services for this appointment */}
-                          {appointment.services.map((s) => s.name).join(", ")}
-                        </div>
-                      </div>
-                    </div>
+                  {appointment && (
+                    <AppointmentCard
+                      appointment={appointment}
+                      variant="detailed"
+                      className="absolute inset-2"
+                    />
                   )}
                 </div>
               </div>
@@ -140,8 +133,11 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
           <Calendar
             mode="single"
             selected={currentDate}
-            // Add an onSelect handler to make the mini calendar interactive
-            // onSelect={(date) => onDateChange(date)}
+            onSelect={(date) => {
+              if (date && onDateChange) {
+                onDateChange(date);
+              }
+            }}
             className="rounded-md"
           />
         </div>
@@ -190,9 +186,6 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
                     </div>
 
                     <div className="space-y-1 mb-3">
-                      <div className="text-sm font-medium">
-                        {appointment.services.map((s) => s.name).join(", ")}
-                      </div>
                       <div className="text-xs text-gray-500">
                         {appointment.formatted_start_time} -{" "}
                         {appointment.formatted_end_time}
