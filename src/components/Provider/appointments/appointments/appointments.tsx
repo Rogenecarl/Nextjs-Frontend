@@ -75,13 +75,7 @@ export function Appointments({
         }
       />
 
-      {/* Loading and Error States */}
-      {isLoading && (
-        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-          <div className="text-gray-600">Loading appointments...</div>
-        </div>
-      )}
-
+      {/* Error State */}
       {isError && (
         <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
           <div className="text-red-600">Error loading appointments.</div>
@@ -89,14 +83,15 @@ export function Appointments({
       )}
 
       {/* Main Content */}
-      {!isLoading && !isError && (
+      {!isError && (
         <>
           <AppointmentsTable
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
+            isLoading={isLoading}
           />
 
-          {paginationMeta && (
+          {!isLoading && paginationMeta && (
             <AppointmentsPagination
               currentPage={paginationMeta.current_page}
               totalPages={paginationMeta.last_page}

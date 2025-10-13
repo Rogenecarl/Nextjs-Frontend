@@ -14,6 +14,9 @@ import { CalendarHeader } from "./calendar-header";
 import { MonthView } from "./calendar-month-view";
 import { WeekView } from "./calendar-week-veiw";
 import { DayView } from "./calendar-day-view";
+import { CalendarMonthViewSkeleton } from "./calendar-month-view-skeleton";
+import { CalendarWeekViewSkeleton } from "./calendar-week-view-skeleton";
+import { CalendarDayViewSkeleton } from "./calendar-day-view-skeleton";
 import type { CalendarEvent } from "@/types/calendar";
 
 // This component no longer needs to receive appointments as a prop.
@@ -60,31 +63,38 @@ export function Calendar() {
         eventCount={events.length + appointments.length} // Show total count
       />
 
-      {/* We can add a loading indicator here for better UX */}
-      {isLoading && <div className="text-center p-8">Loading calendar...</div>}
-
-      {/* Pass the fetched appointments down to the view components */}
+      {/* Calendar Views with Loading States */}
       <div className="min-h-[600px]">
-        {!isLoading && view === "month" && (
-          <MonthView
-            currentDate={currentDate}
-            appointments={appointments}
-            events={events}
-          />
-        )}
-        {!isLoading && view === "week" && (
-          <WeekView
-            currentDate={currentDate}
-            appointments={appointments}
-            events={events}
-          />
-        )}
-        {!isLoading && view === "day" && (
-          <DayView
-            currentDate={currentDate}
-            appointments={appointments}
-            onDateChange={setCurrentDate}
-          />
+        {isLoading ? (
+          <>
+            {view === "month" && <CalendarMonthViewSkeleton />}
+            {view === "week" && <CalendarWeekViewSkeleton />}
+            {view === "day" && <CalendarDayViewSkeleton />}
+          </>
+        ) : (
+          <>
+            {view === "month" && (
+              <MonthView
+                currentDate={currentDate}
+                appointments={appointments}
+                events={events}
+              />
+            )}
+            {view === "week" && (
+              <WeekView
+                currentDate={currentDate}
+                appointments={appointments}
+                events={events}
+              />
+            )}
+            {view === "day" && (
+              <DayView
+                currentDate={currentDate}
+                appointments={appointments}
+                onDateChange={setCurrentDate}
+              />
+            )}
+          </>
         )}
       </div>
 

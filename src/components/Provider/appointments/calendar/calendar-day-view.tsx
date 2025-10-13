@@ -13,6 +13,7 @@ interface DayViewProps {
   currentDate: Date;
   appointments?: Appointment[];
   onDateChange?: (date: Date) => void;
+  isLoading?: boolean;
 }
 
 // Define status configurations for styling
@@ -60,6 +61,7 @@ export function DayView({
   currentDate,
   appointments = [],
   onDateChange,
+  isLoading = false,
 }: DayViewProps) {
   // Filter appointments to get only those for the currently viewed date
   const dayAppointments = appointments.filter((appointment) =>

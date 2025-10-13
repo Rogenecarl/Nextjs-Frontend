@@ -21,6 +21,7 @@ interface MonthViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   appointments?: Appointment[];
+  isLoading?: boolean;
 }
 
 const eventColorClasses = {
@@ -36,6 +37,7 @@ export function MonthView({
   currentDate,
   events,
   appointments = [],
+  isLoading = false,
 }: MonthViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dayDialogOpen, setDayDialogOpen] = useState(false);

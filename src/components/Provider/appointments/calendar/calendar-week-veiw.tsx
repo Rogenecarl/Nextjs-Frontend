@@ -10,6 +10,7 @@ interface WeekViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   appointments?: Appointment[];
+  isLoading?: boolean;
 }
 
 
@@ -20,6 +21,7 @@ export function WeekView({
   currentDate,
   events,
   appointments = [],
+  isLoading = false,
 }: WeekViewProps) {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Start on Monday
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
