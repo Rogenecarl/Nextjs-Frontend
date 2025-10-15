@@ -41,7 +41,7 @@ export default function SettingsPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-background p-4 md:px-8 lg:px-12">
+      <div className="min-h-screen bg-background md:px-8 lg:px-12">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <div className="mb-8 md:mb-12">

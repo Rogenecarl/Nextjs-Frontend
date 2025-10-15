@@ -15,9 +15,16 @@ const axiosInstance = axios.create({
     withXSRFToken: true // Enable XSRF token handling
 });
 
+// // Function to get CSRF cookie from Laravel
+// export const getCsrfToken = () => {
+//     return axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+//         withCredentials: true
+//     });
+// };
+
 // Function to get CSRF cookie from Laravel
 export const getCsrfToken = () => {
-    return axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+    return axios.get('https://project-himsog-laravel-backend.onrender.com/sanctum/csrf-cookie', {
         withCredentials: true
     });
 };

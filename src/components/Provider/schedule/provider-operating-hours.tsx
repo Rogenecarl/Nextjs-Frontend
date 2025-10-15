@@ -230,8 +230,6 @@ export default function ProviderOperatingHours() {
       // Update original data to current state with deep copy
       setOriginalOperatingHours(JSON.parse(JSON.stringify(operatingHours)));
       setHasChanges(false);
-
-      toast.success("Operating hours updated successfully!");
     } catch (error) {
       console.error("Failed to update operating hours:", error);
     }
