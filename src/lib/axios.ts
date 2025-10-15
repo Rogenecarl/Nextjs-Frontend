@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'http://localhost:8000/api';
+//localhost
+// const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'http://localhost:8000/api';
+
+//production
+const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'https://project-himsog-laravel-backend.onrender.com/api';
+
 
 // Create an axios instance with custom config
 const axiosInstance = axios.create({
