@@ -34,13 +34,13 @@ export default function ProviderNavbar() {
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
+                {/* <div className="flex-shrink-0">
                   <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                     <span className="text-primary-foreground font-bold text-xl">
                       S
                     </span>
                   </div>
-                </div>
+                </div> */}
                 {/* <div className="hidden sm:block">
                                 <h1 className="text-xl font-bold text-foreground">Project HIMSOG</h1>
                             </div> */}

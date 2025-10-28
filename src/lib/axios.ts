@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-//localhost
-// const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'http://localhost:8000/api';
+// localhost
+const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'http://localhost:8000/api';
 
 //production
-const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'https://project-himsog-laravel-backend.onrender.com/api';
+// const BASE_URL = process.env.NEXT_BACKEND_API_URL || 'https://project-himsog-laravel-backend.onrender.com/api';
 
 
 // Create an axios instance with custom config
@@ -20,19 +20,19 @@ const axiosInstance = axios.create({
     withXSRFToken: true // Enable XSRF token handling
 });
 
-// // Function to get CSRF cookie from Laravel
-// export const getCsrfToken = () => {
-//     return axios.get('http://localhost:8000/sanctum/csrf-cookie', {
-//         withCredentials: true
-//     });
-// };
-
 // Function to get CSRF cookie from Laravel
 export const getCsrfToken = () => {
-    return axios.get('https://project-himsog-laravel-backend.onrender.com/sanctum/csrf-cookie', {
+    return axios.get('http://localhost:8000/sanctum/csrf-cookie', {
         withCredentials: true
     });
 };
+
+// Function to get CSRF cookie from Laravel
+// export const getCsrfToken = () => {
+//     return axios.get('https://project-himsog-laravel-backend.onrender.com/sanctum/csrf-cookie', {
+//         withCredentials: true
+//     });
+// };
 
 // This interceptor adds the token to every request
 axiosInstance.interceptors.request.use((config) => {

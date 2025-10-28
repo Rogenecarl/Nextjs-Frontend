@@ -9,7 +9,7 @@ export default function HeroSection() {
     <section className="relative z-10 pt-20 pb-16 text-center">
       <div className="max-w-4xl mx-auto px-4">
         {/* Main Heading */}
-        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+        <h1 className="text-5xl md:text-7xl font-semibold text-gray-900 mb-6">
           Find Healthcare
           <span className="block text-indigo-600">Near You</span>
         </h1>
@@ -25,7 +25,7 @@ export default function HeroSection() {
           <Link href="/healthcare">
             <Button 
               size="lg" 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               <Search className="mr-2 h-5 w-5" />
               Find Services
@@ -37,7 +37,7 @@ export default function HeroSection() {
             <Button 
               variant="outline" 
               size="lg"
-              className="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300"
+              className="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300"
             >
               <MapPin className="mr-2 h-5 w-5" />
               View Map
