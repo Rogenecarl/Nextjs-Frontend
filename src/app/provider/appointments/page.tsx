@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AppointmentsNavigation } from "@/components/Provider/appointments/appointments-navigation";
 import { Calendar } from "@/components/Provider/appointments/calendar/calendar";
 import { Appointments as AppointmentsSection } from "@/components/Provider/appointments/appointments/appointments";
-import ProviderLayout from "@/components/Provider/layout/ProviderLayout";
 import {
   useProviderAppointments,
   useProviderAppointmentCounts,
@@ -78,7 +77,6 @@ function AppointmentsPageContent() {
   };
 
   return (
-    <ProviderLayout>
       <div className="min-h-screen bg-gray-50">
         <AppointmentsNavigation
           activeSection={activeSection}
@@ -104,7 +102,6 @@ function AppointmentsPageContent() {
           )}
         </main>
       </div>
-    </ProviderLayout>
   );
 }
 

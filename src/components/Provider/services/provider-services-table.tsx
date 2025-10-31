@@ -89,7 +89,7 @@ export function ProviderServicesTable({
     price_min: 0,
     price_max: 0,
     is_active: true,
-    sort_order: 0,
+    // sort_order: 0,
   });
 
   // Form handlers
@@ -100,7 +100,7 @@ export function ProviderServicesTable({
       price_min: 0,
       price_max: 0,
       is_active: true,
-      sort_order: 0,
+      // sort_order: 0,
     });
   };
 
@@ -181,7 +181,7 @@ export function ProviderServicesTable({
       price_min: service.price_min,
       price_max: service.price_max,
       is_active: service.is_active,
-      sort_order: service.sort_order,
+      // sort_order: service.sort_order,
     });
     setShowEditDialog(service);
   };
@@ -239,9 +239,9 @@ export function ProviderServicesTable({
                 <TableHead className="text-gray-700 font-semibold py-4">
                   Status
                 </TableHead>
-                <TableHead className="text-gray-700 font-semibold py-4">
+                {/* <TableHead className="text-gray-700 font-semibold py-4">
                   Sort Order
-                </TableHead>
+                </TableHead> */}
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -285,9 +285,9 @@ export function ProviderServicesTable({
                     </Badge>
                   </TableCell>
 
-                  <TableCell className="py-4">
+                  {/* <TableCell className="py-4">
                     <div className="text-gray-600">{service.sort_order}</div>
-                  </TableCell>
+                  </TableCell> */}
 
                   <TableCell
                     className="py-4"
@@ -529,7 +529,7 @@ export function ProviderServicesTable({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="sort_order">Sort Order</Label>
                 <Input
                   id="sort_order"
@@ -545,7 +545,7 @@ export function ProviderServicesTable({
                   placeholder="0"
                   className="border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"
                 />
-              </div>
+              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="is_active">Status</Label>
                 <div className="flex items-center space-x-2 pt-2">

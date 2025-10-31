@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { UserProfile } from "@/components/user-profile";
-import ProviderLayout from "@/components/Provider/layout/ProviderLayout";
-import UserLayout from "@/components/User/layout/user-layout";
 import { useUser } from "@/hooks/useUser";
 
 type Tab = "profile" | "password";
@@ -24,9 +22,6 @@ export default function SettingsPage() {
     console.log("[v0] Saving password");
   };
 
-  // Determine which layout to use based on user role
-  const Layout = user?.role === "provider" ? ProviderLayout : UserLayout;
-
   // Show loading state while fetching user data
   if (isLoading) {
     return (
@@ -40,7 +35,6 @@ export default function SettingsPage() {
   }
 
   return (
-    <Layout>
       <div className="min-h-screen bg-background md:px-8 lg:px-12">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
@@ -161,6 +155,5 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 }

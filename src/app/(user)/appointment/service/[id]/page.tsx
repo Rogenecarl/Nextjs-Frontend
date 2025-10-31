@@ -2,7 +2,6 @@
 
 import SetAppointmentServiceForm from "@/components/User/appointment/set-appointment-step1";
 import { useHealthcareData } from "@/components/User/find-services/hook/use-healthcare-data";
-import UserLayout from "@/components/User/layout/user-layout";
 import { useParams } from "next/navigation"; // to get [id] from URL
 
 export default function AppointmentPage() {
@@ -10,43 +9,23 @@ export default function AppointmentPage() {
   const params = useParams();
   const id = params?.id as string;
   if (isLoading) {
-    return (
-      <UserLayout>
-        <p>Appointment details...</p>
-      </UserLayout>
-    );
+    return <p>Appointment details...</p>;
   }
 
   if (error) {
-    return (
-      <UserLayout>
-        <p>Failed to load appointment details.</p>
-      </UserLayout>
-    );
+    return <p>Failed to load appointment details.</p>;
   }
 
   if (!data) {
-    return (
-      <UserLayout>
-        <p>No data found.</p>
-      </UserLayout>
-    );
+    return <p>No data found.</p>;
   }
 
   const providerId = Number(id);
   const provider = data.providers.find((p) => p.id === providerId);
 
   if (!provider) {
-    return (
-      <UserLayout>
-        <p>Appointment id not found.</p>
-      </UserLayout>
-    );
+    return <p>Appointment id not found.</p>;
   }
 
-  return (
-    <UserLayout>
-      <SetAppointmentServiceForm provider={provider} />
-    </UserLayout>
-  );
+  return <SetAppointmentServiceForm provider={provider} />;
 }

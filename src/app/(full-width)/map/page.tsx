@@ -1,5 +1,4 @@
 import MapComponent from "@/components/User/map/map-component";
-import Navbar from "@/components/User/Navbar";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
@@ -7,7 +6,6 @@ import { Loader2 } from "lucide-react";
 export default function MapPage() {
   return (
     <div className="h-screen flex flex-col">
-      <Navbar />
       <div className="flex-1">
         <Suspense fallback={<MapPageSkeleton />}>
           <MapComponent />

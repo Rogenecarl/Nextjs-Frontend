@@ -1,8 +1,5 @@
-import ProviderLayout from "@/components/Provider/layout/ProviderLayout";
-
 export default function ReviewsPage() {
   return (
-    <ProviderLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
@@ -12,6 +9,5 @@ export default function ReviewsPage() {
           <p className="text-gray-600">Reviews management coming soon...</p>
         </div>
       </div>
-    </ProviderLayout>
   );
 }

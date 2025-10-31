@@ -1,4 +1,3 @@
-import Navbar from "@/components/User/Navbar";
 import HeroSection from "@/components/landingpage/hero-section";
 import FeaturesSection from "@/components/landingpage/features-section";
 import HowItWorks from "@/components/landingpage/how-it-works";
@@ -9,7 +8,6 @@ import CTASection from "@/components/landingpage/cta-section";
 export default function Home() {
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
-      <Navbar />
 
       {/* Radial Gradient Background from Bottom */}
       <div

@@ -1,15 +1,12 @@
-import UserLayout from "@/components/User/layout/user-layout";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import HealthcareContent from "./healthcare-content";
 
 export default function Healthcare() {
   return (
-    <UserLayout>
-      <Suspense fallback={<HealthcarePageSkeleton />}>
-        <HealthcareContent />
-      </Suspense>
-    </UserLayout>
+    <Suspense fallback={<HealthcarePageSkeleton />}>
+      <HealthcareContent />
+    </Suspense>
   );
 }
 
@@ -20,17 +17,17 @@ const HealthcarePageSkeleton = () => (
       <Skeleton className="h-8 w-96 mx-auto mb-2" />
       <Skeleton className="h-4 w-80 mx-auto" />
     </div>
-    
+
     <div className="flex flex-wrap items-center gap-2 justify-center mb-6">
       {Array.from({ length: 5 }).map((_, i) => (
         <Skeleton key={i} className="h-10 w-32 rounded-md" />
       ))}
     </div>
-    
+
     <div className="mb-6">
       <Skeleton className="h-12 w-full rounded-md" />
     </div>
-    
+
     <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
         <ProviderCardSkeleton key={i} />

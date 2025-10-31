@@ -1,17 +1,20 @@
-"use client";
+"use client"
 
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, MapPin, Heart, Calendar, Search } from "lucide-react";
-import AvatarDropdownmenu from "../avatar";
-import { useUser } from "@/hooks/useUser";
 import Image from "next/image";
-import NotificationBell from "../notification";
+import NotificationBell from "@/components/notification";
+import AvatarDropdownmenu from "@/components/avatar";
+import { UserProps } from "@/types/types";
 
-export default function Navbar() {
+interface User {
+  user: UserProps;
+}
+
+export default function UserNavbar({ user }: User) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isLoading } = useUser();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

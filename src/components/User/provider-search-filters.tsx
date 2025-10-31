@@ -56,13 +56,10 @@ export default function SearchBarWithSuggestions({
   };
 
   return (
-    <div className="relative">
-      <Command
-        className="overflow-visible rounded-lg border"
-        shouldFilter={false}
-      >
+    <div className="relative w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl">
+      <Command className="rounded-full border" shouldFilter={false}>
         <CommandInput
-          placeholder="Search services, providers, or locations..."
+          placeholder="Search services, providers..."
           value={inputValue}
           onValueChange={handleInputChange}
           onFocus={() => setIsOpen(!!inputValue)}
@@ -80,7 +77,7 @@ export default function SearchBarWithSuggestions({
         />
 
         {isOpen && (
-          <CommandList className="absolute top-full mt-2 w-full bg-white rounded-md shadow-lg z-50 border">
+          <CommandList className="absolute top-full mt-2 w-full bg-white rounded-md shadow z-50 border">
             {isLoading && (
               <CommandEmpty>
                 <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">

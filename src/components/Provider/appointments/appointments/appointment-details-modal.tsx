@@ -106,9 +106,9 @@ export function AppointmentDetailsModal({
                   <div className="font-medium text-gray-900">
                     {appointment.user.name}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  {/* <div className="text-sm text-gray-500">
                     Patient ID: {appointment.user.id}
-                  </div>
+                  </div> */}
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 text-sm text-gray-600">

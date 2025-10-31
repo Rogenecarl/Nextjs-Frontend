@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
                 },
                 setItem: (name, value) => {
                     const { state } = JSON.parse(value);
-                    Cookies.set(name, state.token, { expires: 300 });
+                    Cookies.set(name, state.token, { expires: 30 });
                 },
                 removeItem: (name) => Cookies.remove(name),
             })),

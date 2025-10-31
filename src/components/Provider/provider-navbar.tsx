@@ -5,13 +5,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, MapPin, Heart, Calendar, Search } from "lucide-react";
 import AvatarDropdownmenu from "../avatar";
-import { useUser } from "@/hooks/useUser";
 import AvatarLoadingSkeleton from "../skeletons/avatar-skeleton";
 import NotificationBell from "../notification";
+import { UserProps } from "@/types/types";
 
-export default function ProviderNavbar() {
+interface User {
+  user: UserProps;
+}
+
+export default function ProviderNavbar({ user }: User) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isLoading } = useUser();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -22,7 +25,7 @@ export default function ProviderNavbar() {
     { name: "Appointments", href: "/provider/appointments" },
     { name: "Services", href: "/provider/services" },
     { name: "Schedule", href: "/provider/schedule" },
-    { name: "Provider Profile", href: "/provider/profile" },
+    { name: "Provider Profile", href: "/provider/provider-profile" },
     { name: "Reviews", href: "/provider/reviews" },
   ];
 
@@ -95,9 +98,7 @@ export default function ProviderNavbar() {
 
           {/* Show Avatar menu if user is authenticated, otherwise show auth buttons */}
           <div className="flex items-center space-x-3">
-            {isLoading && user ? (
-              <AvatarLoadingSkeleton />
-            ) : !user ? (
+            {!user ? (
               <div className="hidden md:flex items-center space-x-3">
                 <Link href="/auth/login">
                   <Button

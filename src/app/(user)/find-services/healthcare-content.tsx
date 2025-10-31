@@ -108,6 +108,15 @@ export default function HealthcareContent() {
         </p>
       </div>
 
+      <Suspense>
+        <div className="mb-6">
+          <SearchFiltersCategory
+            onSearch={handleSearch}
+            initialSearchTerm={filters.search_term}
+          />
+        </div>
+      </Suspense>
+
       <div className="flex flex-wrap items-center gap-2 justify-center mb-6">
         {/* Map over the categories and pass down the necessary props */}
         {isCategoriesLoading ? (
@@ -137,15 +146,6 @@ export default function HealthcareContent() {
           </>
         )}
       </div>
-
-      <Suspense>
-        <div className="mb-6">
-          <SearchFiltersCategory
-            onSearch={handleSearch}
-            initialSearchTerm={filters.search_term}
-          />
-        </div>
-      </Suspense>
 
       {isProvidersLoading ? (
         // Show a grid of skeletons while providers are loading
